@@ -10,3 +10,4 @@ pydantic
 logfire
 streamlit-extras
 firecrawl-py
+bcrypt

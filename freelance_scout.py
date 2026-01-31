@@ -143,103 +143,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- SECURITY GATE ---
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
-
-def check_password():
-    """Returns `True` if the user had the correct password."""
-    if not st.session_state.authenticated:
-        # Premium CSS for Login Page
-        st.markdown("""
-            <style>
-            .stApp {
-                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            }
-            .login-container {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                padding: 3rem;
-                background: rgba(255, 255, 255, 0.05);
-                backdrop-filter: blur(20px);
-                border-radius: 24px;
-                border: 1px solid rgba(212, 175, 55, 0.2);
-                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-                max-width: 500px;
-                margin: 100px auto;
-                animation: fadeIn 1s ease-out;
-            }
-            @keyframes fadeIn {
-                from { opacity: 0; transform: translateY(20px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-            .login-title {
-                color: #D4AF37;
-                font-size: 2.5rem;
-                font-weight: 800;
-                margin-bottom: 0.5rem;
-                text-align: center;
-                letter-spacing: -1px;
-            }
-            .login-subtitle {
-                color: #94a3b8;
-                font-size: 1rem;
-                margin-bottom: 2rem;
-                text-align: center;
-            }
-            .stButton>button {
-                width: 100%;
-                background: linear-gradient(90deg, #D4AF37 0%, #B8860B 100%);
-                color: #0f172a !important;
-                border: none;
-                font-weight: 700;
-                padding: 0.75rem;
-                border-radius: 12px;
-                transition: all 0.3s ease;
-            }
-            .stButton>button:hover {
-                transform: scale(1.02);
-                box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
-            }
-            input {
-                background: rgba(15, 23, 42, 0.6) !important;
-                border: 1px solid rgba(212, 175, 55, 0.3) !important;
-                color: white !important;
-                border-radius: 12px !important;
-            }
-            </style>
-        """, unsafe_allow_html=True)
-
-        st.markdown('<div class="login-container">', unsafe_allow_html=True)
-        
-        # Logo handling
-        try:
-            st.image("assets/logo.png", width=120)
-        except:
-            st.markdown('<div style="font-size: 4rem; text-align: center;">⚜️</div>', unsafe_allow_html=True)
-
-        st.markdown('<h1 class="login-title">Freelance Scout</h1>', unsafe_allow_html=True)
-        st.markdown('<p class="login-subtitle">Secured Research Terminal v1.0</p>', unsafe_allow_html=True)
-        
-        password = st.text_input("Agency Access Code", type="password", help="Contact administrator for access.")
-        
-        if st.button("Initialize System"):
-            if password == st.secrets["general"]["password"]:
-                st.session_state.authenticated = True
-                st.success("System Unlocked. Ready for scouting.")
-                st.rerun()
-            elif password != "":
-                st.error("Access Denied. Invalid Authorization Code.")
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-        return False
-    return True
-
-if not check_password():
-    st.stop()
-
 # --- CLIENTS & SERVICES ---
 @st.cache_resource
 def init_supabase():
@@ -271,15 +174,168 @@ except Exception as e:
     st.error(f"Initialization Error: {e}")
     st.stop()
 
+# --- AUTHENTICATION ---
+if "user" not in st.session_state:
+    st.session_state.user = None
+if "auth_mode" not in st.session_state:
+    st.session_state.auth_mode = "Login"
+
+# Inject JWT for RLS enforcement
+if st.session_state.user:
+    try:
+        db.postgrest.auth(st.session_state.user.access_token)
+    except:
+        pass
+
+def auth_gate():
+    """Handles Multi-User Sign In and Registration."""
+    if not st.session_state.user:
+        # Premium CSS for Login Page
+        st.markdown("""
+            <style>
+            .stApp {
+                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            }
+            .login-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 3rem;
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(20px);
+                border-radius: 24px;
+                border: 1px solid rgba(212, 175, 55, 0.2);
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                max-width: 500px;
+                margin: 50px auto;
+                animation: fadeIn 1s ease-out;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .login-title {
+                color: #D4AF37;
+                font-size: 2.5rem;
+                font-weight: 800;
+                margin-bottom: 0.5rem;
+                text-align: center;
+                letter-spacing: -1px;
+            }
+            .login-subtitle {
+                color: #94a3b8;
+                font-size: 0.9rem;
+                margin-bottom: 2rem;
+                text-align: center;
+            }
+            .stButton>button {
+                width: 100%;
+                background: linear-gradient(90deg, #D4AF37 0%, #B8860B 100%);
+                color: #0f172a !important;
+                border: none;
+                font-weight: 700;
+                padding: 0.75rem;
+                border-radius: 12px;
+                transition: all 0.3s ease;
+            }
+            .stButton>button:hover {
+                transform: scale(1.02);
+                box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            }
+            input {
+                background: rgba(15, 23, 42, 0.6) !important;
+                border: 1px solid rgba(212, 175, 55, 0.3) !important;
+                color: white !important;
+                border-radius: 12px !important;
+            }
+            .auth-toggle {
+                cursor: pointer;
+                color: #D4AF37;
+                text-decoration: underline;
+                font-weight: 600;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+
+        st.markdown('<div class="login-container">', unsafe_allow_html=True)
+        
+        # Logo handling
+        try:
+            st.image("assets/logo.png", width=100)
+        except:
+            st.markdown('<div style="font-size: 3rem; text-align: center;">⚜️</div>', unsafe_allow_html=True)
+
+        st.markdown(f'<h1 class="login-title">{st.session_state.auth_mode}</h1>', unsafe_allow_html=True)
+        st.markdown('<p class="login-subtitle">Secured Research Terminal v2.0</p>', unsafe_allow_html=True)
+        
+        email = st.text_input("Email", placeholder="researcher@agency.com")
+        password = st.text_input("Password", type="password", placeholder="••••••••")
+        
+        if st.session_state.auth_mode == "Login":
+            if st.button("Unlock System"):
+                try:
+                    res = db.auth.sign_in_with_password({"email": email, "password": password})
+                    st.session_state.user = res.user
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Login Failed: {str(e)}")
+            
+            st.markdown("---")
+            st.markdown("New to the Agency?")
+            if st.button("Create an Account"):
+                st.session_state.auth_mode = "Register"
+                st.rerun()
+        
+        else:
+            full_name = st.text_input("Full Name", placeholder="Alexander Pierce")
+            if st.button("Join the Agency"):
+                try:
+                    res = db.auth.sign_up({"email": email, "password": password})
+                    if res.user:
+                        # Initialize Profile
+                        db.table("profiles").insert({
+                            "id": res.user.id,
+                            "full_name": full_name
+                        }).execute()
+                        st.success("Account Created! Please check your email for verification.")
+                        st.session_state.auth_mode = "Login"
+                        st.rerun()
+                except Exception as e:
+                    st.error(f"Registration Failed: {str(e)}")
+            
+            if st.button("Back to Login"):
+                st.session_state.auth_mode = "Login"
+                st.rerun()
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+        return False
+    return True
+
+# --- AUTHENTICATION GATE ---
+if not auth_gate():
+    st.stop()
+
 # --- SIDEBAR: MULTI-TENANT CONTROL ---
 with st.sidebar:
     try:
         st.image("assets/logo.png", width=150)
     except:
         pass
+    
+    # User Profile & Logout
+    st.markdown("### 👤 Researcher Profile")
+    st.write(f"Logged in as: **{st.session_state.user.email}**")
+    if st.button("Logout", use_container_width=True):
+        db.auth.sign_out()
+        st.session_state.user = None
+        st.rerun()
+    
+    st.markdown("---")
     st.markdown("### Project Control")
     
     try:
+        # RLS handles user isolation automatically
         projects_res = db.table("projects").select("*").order("created_at", desc=True).execute()
         projects = projects_res.data
     except:
@@ -298,12 +354,14 @@ with st.sidebar:
     add_vertical_space(1)
     st.markdown("---")
     st.markdown("### New Client Onboarding")
-    new_client = st.text_input("Client Name - Topic")
-    if st.button("Create Project") and new_client:
+    new_client = st.text_input("Client Name - Topic", help="Syntax: Client Name - Project Title")
+    if st.button("Create Project", use_container_width=True) and new_client:
         parts = new_client.split(" - ")
         c_name = parts[0]
         p_name = parts[1] if len(parts) > 1 else parts[0]
+        # owner_id will be set by DB default auth.uid()
         db.table("projects").insert({"name": p_name, "client_name": c_name}).execute()
+        st.success(f"Project '{p_name}' created!")
         st.rerun()
 
 # --- MAIN APP UI ---
