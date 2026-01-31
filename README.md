@@ -1,46 +1,43 @@
-# Freelance Research Scout 🔍
+# Elite Research Scout ⚜️
 
-An agentic, multi-tenant research operating system designed for elite freelance researchers. Built with Streamlit, Supabase, and Gemini 2.0 Flash.
+A premium, luxury-grade agentic research terminal designed for elite researchers. Built with Streamlit, Supabase, and Gemini 2.0 Flash.
 
-## ✨ Features
-- **Hybrid Scout**: Internal memory + Academic Graph (Semantic Scholar) + Grey Literature (DDG).
-- **Auto-Pilot**: Autonomous keyword refinement loop.
-- **Deep Ingestion**: PDF metadata extraction & Firecrawl web scraping with Pydantic validation.
-- **Library Management**: Snowball Mining (recursive citations) & Citation previews.
-- **Deliverables**: Word XML Bibliography, Excel Matrix, and Notion Sync.
-- **Ghostwriter**: Advanced RAG synthesis with mandatory inline citations.
+## 💎 Elite Features
+- **Luxury Interface**: Stunning glassmorphic design with custom gradients and premium typography.
+- **Multi-User Security**: Individual researcher accounts with database-level Row Level Security (RLS).
+- **Hybrid Scout**: Internal memory scan + Global Academic Graph (Semantic Scholar) + Grey Literature (Web PDF Search).
+- **Auto-Pilot Loop**: Autonomous keyword refinement engine for deep intelligence gathering.
+- **Digital Ingest**: PDF metadata extraction and Firecrawl deep-scraping with Pydantic validation.
+- **Citation Matrix**: Interactive library with Snowball Mining (recursive citation discovery).
+- **Export Lounge**: Word XML Bibliography, Excel Matrix, and Notion Workspace integration.
+- **Synthesis Engine**: Advanced RAG synthesis with mandatory grounded inline citations.
 
 ## 🛠️ Prerequisites
 - Python 3.11+
-- Supabase Account (Postgres + SQL Editor)
+- [Supabase](https://supabase.com/) Account (Postgres + Auth)
 - Google Gemini API Key
 - Firecrawl API Key (Optional for deep scraping)
 - Notion API Token (Optional for syncing)
 
-## 🚀 Quick Start
-1. **Clone & Install**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. **Setup Database**: Run `schema.sql` in your Supabase SQL Editor.
-3. **Configure Secrets**: Copy `.streamlit/secrets_template.toml` to `.streamlit/secrets.toml` and fill in your keys.
-4. **Run**:
-   ```bash
-   streamlit run freelance_scout.py
-   ```
+## 🚀 Deployment & Setup
 
-## ☁️ Deployment Guide (Streamlit Community Cloud)
+### 1. Database Configuration
+1. Create a new Supabase project.
+2. In the **SQL Editor**, run the contents of [schema.sql](schema.sql) to initialize tables.
+3. Run [migration.sql](migration.sql) to enable multi-user RLS and profiles.
+4. In **Authentication > Providers**, ensure Email is enabled.
 
-1. **GitHub Repository**:
-   - Create a new Private repository on GitHub.
-   - Push all files **EXCEPT** `.streamlit/secrets.toml` (which is gitignored).
-2. **Connect to Streamlit Cloud**:
-   - Go to [share.streamlit.io](https://share.streamlit.io).
-   - Click "New app" and select your repository and the `freelance_scout.py` file.
-3. **Configure Secrets**:
-   - In the Streamlit Cloud deployment settings, go to **Secrets**.
-   - Paste the contents of your local `secrets.toml` into the secrets area.
-4. **Deploy**: Click "Deploy" and your Research OS is live!
+### 2. Local Environment
+1. Clone the repository.
+2. Install dependencies: `pip install -r requirements.txt`
+3. Copy `.streamlit/secrets_template.toml` to `.streamlit/secrets.toml` and add your keys.
+4. Launch the terminal: `streamlit run freelance_scout.py`
+
+### 3. Streamlit Community Cloud (Live)
+1. Push your code to a private GitHub repository.
+2. Connect the repo at [share.streamlit.io](https://share.streamlit.io).
+3. **Critical**: Paste your `secrets.toml` content into the Streamlit Cloud **Advanced Settings > Secrets** section.
+4. Your luxury research terminal is now live at your custom URL.
 
 ---
-*Developed by Antigravity AI.*
+*Developed for the elite researcher. Built by Antigravity AI.*
