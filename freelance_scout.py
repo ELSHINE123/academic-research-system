@@ -327,39 +327,24 @@ with st.sidebar:
             }).execute()
             st.rerun()
 
-    if st.session_state.project_id:
-        st.markdown("<br>", unsafe_allow_html=True)
-        with st.popover("🗑️ DECOMMISSION SECTOR", use_container_width=True):
-            st.warning("This will permanently incinerate all intelligence records within this sector.")
-            if st.button("CONFIRM DECOMMISSIONING"):
-                try:
-                    # Cascade delete should handle papers if configured, but let's be safe
-                    db.table("papers").delete().eq("project_id", st.session_state.project_id).execute()
-                    db.table("projects").delete().eq("id", st.session_state.project_id).execute()
-                    st.session_state.project_id = None
-                    st.success("Sector Decommissioned.")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Decommissioning Failed: {e}")
-
     st.markdown("---")
-    st.markdown("<p style='font-size: 0.6rem; color: #121212; text-align: center; opacity: 0.5;'>THE FACTORY v2.1.0<br>© 2026 ANTIGRAVITY AI</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 0.6rem; color: #121212; text-align: center; opacity: 0.5;'>THE FACTORY v2.1.1<br>© 2026 ANTIGRAVITY AI</p>", unsafe_allow_html=True)
 
 # --- MAIN UI ---
 if st.session_state.project_id:
     st.markdown(f'<p class="sector-badge">Active Sector: {active_project["name"]}</p>', unsafe_allow_html=True)
     
     tabs = st.tabs([
-        "🔍 Market Intelligence", 
-        "📥 Raw Material Intake", 
-        "📚 Inventory & Archives", 
-        "🧾 Shipping & Logistics", 
-        "✍️ Precision Assembly"
+        "🔍 Current Intelligence", 
+        "📥 Resource Acquisitions", 
+        "📚 The Research Archive", 
+        "🧾 Intelligence Dossier", 
+        "✍️ Manuscripts & Drafts"
     ])
     
-    # 🔍 MARKET INTELLIGENCE (SCOUT)
+    # 🔍 CURRENT INTELLIGENCE (SCOUT)
     with tabs[0]:
-        st.markdown('<div class="factory-card"><h3>Market Intelligence Scanner</h3><p>Query Global Graphs and Web Frontiers.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="factory-card"><h3>Global Intelligence Scout</h3><p>Query Global Graphs and Web Frontiers.</p></div>', unsafe_allow_html=True)
         q = st.text_input("Intelligence Objective")
         col1, col2 = st.columns(2)
         grey = col1.toggle("Grey Literature Search")
@@ -401,9 +386,9 @@ if st.session_state.project_id:
                             st.toast("Saved!")
                 status.update(label="Loop Complete", state="complete")
 
-    # 📥 RAW MATERIAL INTAKE (INGEST)
+    # 📥 RESOURCE ACQUISITIONS (INGEST)
     with tabs[1]:
-        st.markdown('<div class="factory-card"><h3>Intake Processing Unit</h3><p>Secure PDFs or ingest URLs with refined extraction.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="factory-card"><h3>Resource Acquisition Station</h3><p>Secure PDFs or ingest URLs with refined extraction.</p></div>', unsafe_allow_html=True)
         mode = st.radio("Channel", ["PDF", "URL"], horizontal=True)
         if mode == "PDF":
             up = st.file_uploader("Source PDF", type="pdf")
@@ -458,9 +443,9 @@ if st.session_state.project_id:
                     else:
                         st.error("Paper not found in Graph.")
 
-    # 🧾 SHIPPING & LOGISTICS (EXPORT)
+    # 🧾 INTELLIGENCE DOSSIER (EXPORT)
     with tabs[3]:
-        st.markdown('<div class="factory-card"><h3>Logistics & Distribution</h3><p>Prepare the final handover documents for the sector.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="factory-card"><h3>Intelligence Dossier Export</h3><p>Prepare the final handover documents for the sector.</p></div>', unsafe_allow_html=True)
         p_exp = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
         if p_exp:
             exp_col1, exp_col2, exp_col3 = st.columns(3)
@@ -484,9 +469,9 @@ if st.session_state.project_id:
                             status.update(label="Notion Sync Successful!", state="complete")
                     else: st.warning("Notion credentials missing in secrets.")
 
-    # ✍️ PRECISION ASSEMBLY (SYNTHESIS)
+    # ✍️ MANUSCRIPTS & DRAFTS (SYNTHESIS)
     with tabs[4]:
-        st.markdown('<div class="factory-card"><h3>Precision Assembly Unit</h3><p>Grounded strictly in the curated project archives.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="factory-card"><h3>Editorial Synthesis Engine</h3><p>Grounded strictly in the curated project archives.</p></div>', unsafe_allow_html=True)
         papers_rag = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
         kb = "\n".join([f"KEY: ({p['authors'][0] if p['authors'] else 'n.a'}, {p['year']}) | CONTENT: {p.get('abstract','')}" for p in papers_rag])
         if pr := st.chat_input("Synthesize intelligence..."):
