@@ -148,21 +148,92 @@ if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 def check_password():
+    """Returns `True` if the user had the correct password."""
     if not st.session_state.authenticated:
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            try:
-                st.image("assets/logo.png", width=300)
-            except:
-                st.markdown("<h1 style='color: #D4AF37;'>Freelance Research Scout</h1>", unsafe_allow_html=True)
-            st.markdown("<h1 style='text-align: center;'>Agency Login</h1>", unsafe_allow_html=True)
-            password = st.text_input("Enter Access Code", type="password")
-            if st.button("Unlock System"):
-                if password == st.secrets["general"]["password"]:
-                    st.session_state.authenticated = True
-                    st.rerun()
-                else:
-                    st.error("Invalid Access Code")
+        # Premium CSS for Login Page
+        st.markdown("""
+            <style>
+            .stApp {
+                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            }
+            .login-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 3rem;
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(20px);
+                border-radius: 24px;
+                border: 1px solid rgba(212, 175, 55, 0.2);
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                max-width: 500px;
+                margin: 100px auto;
+                animation: fadeIn 1s ease-out;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .login-title {
+                color: #D4AF37;
+                font-size: 2.5rem;
+                font-weight: 800;
+                margin-bottom: 0.5rem;
+                text-align: center;
+                letter-spacing: -1px;
+            }
+            .login-subtitle {
+                color: #94a3b8;
+                font-size: 1rem;
+                margin-bottom: 2rem;
+                text-align: center;
+            }
+            .stButton>button {
+                width: 100%;
+                background: linear-gradient(90deg, #D4AF37 0%, #B8860B 100%);
+                color: #0f172a !important;
+                border: none;
+                font-weight: 700;
+                padding: 0.75rem;
+                border-radius: 12px;
+                transition: all 0.3s ease;
+            }
+            .stButton>button:hover {
+                transform: scale(1.02);
+                box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            }
+            input {
+                background: rgba(15, 23, 42, 0.6) !important;
+                border: 1px solid rgba(212, 175, 55, 0.3) !important;
+                color: white !important;
+                border-radius: 12px !important;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+
+        st.markdown('<div class="login-container">', unsafe_allow_html=True)
+        
+        # Logo handling
+        try:
+            st.image("assets/logo.png", width=120)
+        except:
+            st.markdown('<div style="font-size: 4rem; text-align: center;">⚜️</div>', unsafe_allow_html=True)
+
+        st.markdown('<h1 class="login-title">Freelance Scout</h1>', unsafe_allow_html=True)
+        st.markdown('<p class="login-subtitle">Secured Research Terminal v1.0</p>', unsafe_allow_html=True)
+        
+        password = st.text_input("Agency Access Code", type="password", help="Contact administrator for access.")
+        
+        if st.button("Initialize System"):
+            if password == st.secrets["general"]["password"]:
+                st.session_state.authenticated = True
+                st.success("System Unlocked. Ready for scouting.")
+                st.rerun()
+            elif password != "":
+                st.error("Access Denied. Invalid Authorization Code.")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
         return False
     return True
 
