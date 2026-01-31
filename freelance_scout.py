@@ -26,16 +26,26 @@ st.set_page_config(
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-    /* Factory Core */
+    /* Premium Core: The Ivory Canvas */
     .stApp {
-        background: #FAF9F6;
+        background: #FAF9F6 !important;
         background-image: 
-            radial-gradient(at 0% 0%, rgba(197, 160, 33, 0.05) 0px, transparent 50%),
-            url("https://www.transparenttextures.com/patterns/natural-paper.png");
-        color: #121212;
+            radial-gradient(at 0% 0%, rgba(197, 160, 33, 0.03) 0px, transparent 50%),
+            url("https://www.transparenttextures.com/patterns/natural-paper.png") !important;
+        color: #121212 !important;
         font-family: 'Inter', sans-serif;
     }
 
+    /* Remove Streamlit Header Void */
+    header, [data-testid="stHeader"] {
+        background: transparent !important;
+        border-bottom: 1px solid rgba(18, 18, 18, 0.05) !important;
+    }
+    header::before, [data-testid="stHeader"]::before {
+        display: none !important;
+    }
+
+    /* Elegant Typography */
     h1, h2, h3, .main-header {
         font-family: 'Playfair Display', serif !important;
         font-weight: 700 !important;
@@ -43,153 +53,147 @@ st.markdown("""
         color: #121212 !important;
     }
 
-    /* Editorial Header */
+    /* Hero Section: The Factory Identity */
     .main-header {
-        font-size: 5rem !important;
-        line-height: 1.1 !important;
+        font-size: 4.5rem !important;
+        line-height: 1 !important;
         margin-bottom: 0rem !important;
         text-align: center;
         border-bottom: 1px solid #121212;
-        padding-bottom: 1rem;
+        padding-bottom: 0.5rem;
         margin-top: 2rem;
+        animation: heroFade 1.2s ease-out;
+    }
+    @keyframes heroFade {
+        from { opacity: 0; letter-spacing: 0.5em; }
+        to { opacity: 1; letter-spacing: normal; }
     }
     .sub-header {
         color: #C5A021;
-        font-size: 1rem;
+        font-size: 0.8rem;
         text-transform: uppercase;
-        letter-spacing: 0.5em;
+        letter-spacing: 0.6em;
         text-align: center;
         margin-top: 1rem;
-        margin-bottom: 5rem;
+        margin-bottom: 4rem;
         font-weight: 400;
+        opacity: 0.8;
     }
 
-    /* The Curator's Panel (Sidebar) */
+    /* Sidebar: The Curator's Panel */
     [data-testid="stSidebar"] {
-        background: #fdfcf9 !important;
-        border-right: 1px solid rgba(18, 18, 18, 0.1);
-        box-shadow: 20px 0 60px rgba(0,0,0,0.03);
+        background: #ffffff !important;
+        border-right: 1px solid rgba(18, 18, 18, 0.08);
     }
-    [data-testid="stSidebar"] h1 {
-        font-size: 1.2rem !important;
-        text-transform: uppercase;
-        letter-spacing: 0.2em;
-        border-bottom: 1px solid #121212;
-        padding-bottom: 0.5rem;
+    [data-testid="stSidebar"] section {
+        padding-top: 2rem !important;
     }
     
-    /* Factory Buttons */
+    /* Refined Buttons (Smaller, More Elegant) */
     .stButton>button {
-        background: transparent !important;
+        background: #ffffff !important;
         color: #121212 !important;
-        font-weight: 600 !important;
+        font-weight: 400 !important;
+        font-size: 0.75rem !important;
         border-radius: 0px !important;
-        border: 1px solid #121212 !important;
-        padding: 0.7rem 2rem !important;
+        border: 1px solid rgba(18, 18, 18, 0.15) !important;
+        padding: 0.4rem 1.2rem !important;
         text-transform: uppercase;
-        letter-spacing: 0.15em;
-        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+        letter-spacing: 0.2em;
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+        width: 100% !important;
+        margin-bottom: 0.5rem !important;
     }
     .stButton>button:hover {
         background: #121212 !important;
         color: #FAF9F6 !important;
-        padding-left: 2.5rem !important;
+        border-color: #121212 !important;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
 
-    /* Factory Cards */
+    /* Factory Cards with Interaction */
     .factory-card {
         background: #ffffff;
-        border: 1px solid rgba(18, 18, 18, 0.08);
-        padding: 3rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
-        position: relative;
-        animation: fadeIn 0.8s ease-out;
+        border: 1px solid rgba(18, 18, 18, 0.05);
+        padding: 2.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.01);
+        transition: all 0.4s ease;
     }
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .factory-card::before {
-        content: "";
-        position: absolute;
-        top: 0; left: 0; width: 4px; height: 100%;
-        background: #C5A021;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-    .factory-card:hover::before {
-        opacity: 1;
+    .factory-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.03);
+        border-color: rgba(197, 160, 33, 0.2);
     }
 
-    /* Underline Tabs */
+    /* Tabs: No Shadows, Pure Clarity */
     .stTabs [data-baseweb="tab-list"] {
-        background: transparent;
-        padding: 0;
-        border-bottom: 1px solid rgba(18, 18, 18, 0.1);
-        display: flex;
+        background: transparent !important;
+        border-bottom: 1px solid rgba(18, 18, 18, 0.08) !important;
+        gap: 2rem;
         justify-content: center;
-        gap: 30px;
-        margin-bottom: 5rem;
+        margin-bottom: 4rem;
+        overflow: visible !important;
+    }
+    .stTabs [data-baseweb="tab-list"]::after {
+        display: none !important; /* Fix for that annoying right shadow */
     }
     .stTabs [data-baseweb="tab"] {
         background: transparent !important;
-        padding: 15px 5px !important;
-        font-weight: 400 !important;
-        font-size: 1rem !important;
-        border: none !important;
-        color: #94a3b8 !important;
+        color: #94A3B8 !important;
         font-family: 'Playfair Display', serif !important;
-        text-transform: capitalize;
+        font-size: 0.95rem !important;
+        border: none !important;
+        transition: color 0.3s ease;
     }
     .stTabs [aria-selected="true"] {
         color: #121212 !important;
         border-bottom: 2px solid #C5A021 !important;
     }
 
-    /* Inputs & Labels */
+    /* Auth Page: High Contrast Restoration */
     [data-testid="stWidgetLabel"] p {
         color: #121212 !important;
-        font-weight: 600 !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.05em;
     }
     .stTextInput input {
         background: #ffffff !important;
-        border: 1px solid rgba(18, 18, 18, 0.2) !important;
-        border-radius: 4px !important;
+        border: 1px solid rgba(18, 18, 18, 0.1) !important;
+        border-radius: 2px !important;
         color: #121212 !important;
-        font-size: 1rem !important;
-        padding: 12px !important;
+        padding: 1rem !important;
+        height: 3rem !important;
     }
     .stTextInput input:focus {
-        border: 1px solid #C5A021 !important;
-        box-shadow: 0 0 0 2px rgba(197, 160, 33, 0.1) !important;
+        border-color: #C5A021 !important;
+        box-shadow: 0 0 0 1px #C5A021 !important;
     }
-    
-    /* Radio Buttons Visibility */
     [data-testid="stRadio"] label p {
         color: #121212 !important;
     }
-    div[role="radiogroup"] {
-        gap: 1.5rem !important;
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #FAF9F6;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: rgba(18, 18, 18, 0.1);
+        border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #C5A021;
     }
 
-    /* Metrics & Stats */
-    [data-testid="stMetricValue"] {
-        color: #121212 !important;
-        font-family: 'Playfair Display', serif !important;
-        font-weight: 700 !important;
-        font-size: 3rem !important;
-    }
-
-    /* Sector Badge */
-    .sector-badge {
-        font-family: 'Inter', sans-serif;
-        text-transform: uppercase;
-        letter-spacing: 0.2em;
-        font-size: 0.75rem;
-        color: #C5A021;
-        text-align: center;
-        margin-bottom: 3rem;
+    /* Clean Selectbox */
+    .stSelectbox [data-baseweb="select"] {
+        background: #ffffff !important;
+        border: 1px solid rgba(18, 18, 18, 0.1) !important;
+        border-radius: 0px !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -263,6 +267,7 @@ if st.session_state.user:
         pass
 
 # Main Cinematic Header
+st.markdown('<p class="sub-header" style="margin-top: 4rem;">EST. 2026</p>', unsafe_allow_html=True)
 st.markdown('<h1 class="main-header">THE FACTORY</h1>', unsafe_allow_html=True)
 st.markdown('<p class="sub-header">PRECISION RESEARCH ENGINE</p>', unsafe_allow_html=True)
 
@@ -274,8 +279,8 @@ def auth_gate():
         
         auth_mode = st.radio("Access Level", ["Operator Login", "New Studio Enrollment"], horizontal=True)
         
-        email = st.text_input("Personnel Email")
-        password = st.text_input("Credentials", type="password")
+        email = st.text_input("Personnel Email", placeholder="operator@factory.ai")
+        password = st.text_input("Credentials", type="password", placeholder="••••••••")
         
         if auth_mode == "Operator Login":
             if st.button("Enter Factory"):
@@ -302,7 +307,8 @@ if not auth_gate():
 
 # Sidebar: The Curator's Panel
 with st.sidebar:
-    st.markdown("<h1>The Curator's Panel</h1>", unsafe_allow_html=True)
+    st.markdown('<p class="sector-badge" style="text-align:left; margin-bottom:1rem;">THE CURATOR\'S PANEL</p>', unsafe_allow_html=True)
+    st.markdown('<h2 style="font-size: 1.5rem; margin-top:0;">Terminal Control</h2>', unsafe_allow_html=True)
     
     with st.expander("👤 OPERATOR PROFILE", expanded=False):
         st.info(f"Identity: {st.session_state.user.email}")
@@ -357,7 +363,7 @@ with st.sidebar:
 
 # --- MAIN UI ---
 if st.session_state.project_id:
-    st.markdown(f'<p class="sector-badge">Active Workspace: {active_project["name"]}</p>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sector-badge">WORKSPACE ID: {active_project["id"][:8].upper()} — SEC. {active_project["name"].upper()}</div>', unsafe_allow_html=True)
     
     tabs = st.tabs([
         "🔍 Current Intelligence", 
