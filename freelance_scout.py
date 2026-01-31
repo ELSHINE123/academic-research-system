@@ -22,124 +22,163 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Custom Premium CSS: THE OBSIDIAN ARCHIVE
+# Custom Premium CSS: THE ATELIER
 st.markdown("""
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-    /* Obsidian Archive Core */
+    /* Atelier Core */
     .stApp {
-        background: #020617;
+        background: #FAF9F6;
         background-image: 
-            radial-gradient(at 0% 0%, rgba(30, 41, 59, 0.4) 0px, transparent 50%),
-            radial-gradient(at 100% 100%, rgba(15, 23, 42, 0.4) 0px, transparent 50%),
-            radial-gradient(at 50% 50%, rgba(2, 6, 23, 1) 0px, transparent 100%);
-        color: #e2e8f0;
+            radial-gradient(at 0% 0%, rgba(197, 160, 33, 0.05) 0px, transparent 50%),
+            url("https://www.transparenttextures.com/patterns/natural-paper.png");
+        color: #121212;
         font-family: 'Inter', sans-serif;
     }
 
     h1, h2, h3, .main-header {
-        font-family: 'Outfit', sans-serif !important;
-        font-weight: 800 !important;
-        letter-spacing: -0.03em !important;
+        font-family: 'Playfair Display', serif !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.01em !important;
+        color: #121212 !important;
     }
 
-    /* Cinematic Header */
+    /* Editorial Header */
     .main-header {
-        background: linear-gradient(135deg, #f8fafc 0%, #94a3b8 50%, #64748b 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-size: 4rem !important;
-        margin-bottom: 0.5rem !important;
-        filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+        font-size: 5rem !important;
+        line-height: 1.1 !important;
+        margin-bottom: 0rem !important;
+        text-align: center;
+        border-bottom: 1px solid #121212;
+        padding-bottom: 1rem;
+        margin-top: 2rem;
     }
     .sub-header {
-        color: #D4AF37;
-        font-size: 0.9rem;
+        color: #C5A021;
+        font-size: 1rem;
         text-transform: uppercase;
-        letter-spacing: 0.4em;
-        margin-top: -15px;
-        margin-bottom: 4rem;
-        font-weight: 600;
-        opacity: 0.8;
+        letter-spacing: 0.5em;
+        text-align: center;
+        margin-top: 1rem;
+        margin-bottom: 5rem;
+        font-weight: 400;
     }
 
-    /* Sidebar - Control Panel Aesthetic */
+    /* The Curator's Panel (Sidebar) */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0f172a 0%, #020617 100%) !important;
-        background-image: url("https://www.transparenttextures.com/patterns/brushed-alum.png") !important;
-        border-right: 1px solid rgba(255,255,255,0.05);
-        box-shadow: 10px 0 50px rgba(0,0,0,0.8);
+        background: #fdfcf9 !important;
+        border-right: 1px solid rgba(18, 18, 18, 0.1);
+        box-shadow: 20px 0 60px rgba(0,0,0,0.03);
+    }
+    [data-testid="stSidebar"] h1 {
+        font-size: 1.2rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        border-bottom: 1px solid #121212;
+        padding-bottom: 0.5rem;
     }
     
-    /* Neomorphic Buttons */
+    /* Atelier Buttons */
     .stButton>button {
-        background: #D4AF37 !important;
-        background: linear-gradient(145deg, #e5c05c, #b8860b) !important;
-        color: #020617 !important;
-        font-weight: 800 !important;
-        border-radius: 8px !important;
-        border: 1px solid rgba(255,255,255,0.2) !important;
-        padding: 0.8rem 1.5rem !important;
+        background: transparent !important;
+        color: #121212 !important;
+        font-weight: 600 !important;
+        border-radius: 0px !important;
+        border: 1px solid #121212 !important;
+        padding: 0.7rem 2rem !important;
         text-transform: uppercase;
-        letter-spacing: 0.1em;
-        box-shadow: 4px 4px 12px rgba(0,0,0,0.4), -2px -2px 8px rgba(255,255,255,0.05) !important;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        letter-spacing: 0.15em;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
     }
     .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 30px rgba(212,175,55,0.4) !important;
-        filter: brightness(1.1);
+        background: #121212 !important;
+        color: #FAF9F6 !important;
+        padding-left: 2.5rem !important;
     }
 
-    /* Obsidian Glass Containers */
-    .obs-card {
-        background: rgba(15, 23, 42, 0.4);
-        backdrop-filter: blur(30px) saturate(150%);
-        -webkit-backdrop-filter: blur(30px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 24px;
-        padding: 2.5rem;
+    /* Atelier Cards */
+    .atelier-card {
+        background: #ffffff;
+        border: 1px solid rgba(18, 18, 18, 0.08);
+        padding: 3rem;
         margin-bottom: 2rem;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+        position: relative;
+        animation: fadeIn 0.8s ease-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .atelier-card::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; width: 4px; height: 100%;
+        background: #C5A021;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .atelier-card:hover::before {
+        opacity: 1;
     }
 
-    /* Floating Pill Tabs */
+    /* Underline Tabs */
     .stTabs [data-baseweb="tab-list"] {
-        background: rgba(255, 255, 255, 0.02);
-        padding: 8px;
-        border-radius: 50px;
-        border: 1px solid rgba(255,255,255,0.05);
+        background: transparent;
+        padding: 0;
+        border-bottom: 1px solid rgba(18, 18, 18, 0.1);
         display: flex;
         justify-content: center;
-        gap: 15px;
-        margin-bottom: 4rem;
+        gap: 30px;
+        margin-bottom: 5rem;
     }
     .stTabs [data-baseweb="tab"] {
         background: transparent !important;
-        border-radius: 50px !important;
-        padding: 12px 28px !important;
-        font-weight: 600 !important;
-        font-size: 0.95rem !important;
+        padding: 15px 5px !important;
+        font-weight: 400 !important;
+        font-size: 1rem !important;
         border: none !important;
-        color: #64748b !important;
+        color: #94a3b8 !important;
+        font-family: 'Playfair Display', serif !important;
+        text-transform: capitalize;
     }
     .stTabs [aria-selected="true"] {
-        background: rgba(212, 175, 55, 1) !important;
-        color: #020617 !important;
-        box-shadow: 0 10px 20px rgba(212,175,55,0.3) !important;
+        color: #121212 !important;
+        border-bottom: 2px solid #C5A021 !important;
+    }
+
+    /* Inputs */
+    .stTextInput input {
+        background: transparent !important;
+        border: none !important;
+        border-bottom: 1px solid rgba(18, 18, 18, 0.2) !important;
+        border-radius: 0px !important;
+        color: #121212 !important;
+        font-size: 1.2rem !important;
+        padding: 10px 0 !important;
+    }
+    .stTextInput input:focus {
+        border-bottom: 1px solid #C5A021 !important;
+        box-shadow: none !important;
     }
 
     /* Metrics & Stats */
     [data-testid="stMetricValue"] {
-        color: #D4AF37 !important;
-        font-weight: 800 !important;
+        color: #121212 !important;
+        font-family: 'Playfair Display', serif !important;
+        font-weight: 700 !important;
+        font-size: 3rem !important;
     }
 
-    /* Data Editor Theme */
-    div[data-testid="stDataFrame"] {
-        background: rgba(15, 23, 42, 0.6) !important;
-        border-radius: 16px !important;
-        border: 1px solid rgba(255,255,255,0.1) !important;
+    /* Sector Badge */
+    .sector-badge {
+        font-family: 'Inter', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        font-size: 0.75rem;
+        color: #C5A021;
+        text-align: center;
+        margin-bottom: 3rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -204,7 +243,7 @@ def generate_word_xml_bib(papers):
 if "user" not in st.session_state:
     st.session_state.user = None
 if "auth_mode" not in st.session_state:
-    st.session_state.auth_mode = "Login"
+    st.session_state.auth_mode = "Login" # Keep this line for initial state, though the new auth_gate might override it.
 
 if st.session_state.user:
     try:
@@ -212,36 +251,37 @@ if st.session_state.user:
     except:
         pass
 
+# Main Cinematic Header
+st.markdown('<h1 class="main-header">THE ATELIER</h1>', unsafe_allow_html=True)
+st.markdown('<p class="sub-header">ELITE RESEARCH SCOUT V2.0</p>', unsafe_allow_html=True)
+
+# Auth Gate Logic with Obsidian Card
 def auth_gate():
     if not st.session_state.user:
-        st.markdown('<div class="obs-card" style="max-width:550px; margin: 100px auto auto;">', unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align:center; color:#e2e8f0; margin-bottom: 2rem;'>{st.session_state.auth_mode}</h1>", unsafe_allow_html=True)
-        email = st.text_input("RESEARCHER EMAIL")
-        password = st.text_input("SECURITY CLEARANCE", type="password")
-        if st.session_state.auth_mode == "Login":
-            if st.button("AUTHENTICATE", use_container_width=True):
+        st.markdown('<div class="atelier-card" style="max-width:550px; margin: 100px auto auto;">', unsafe_allow_html=True)
+        st.markdown('<h3 style="text-align:center; margin-bottom: 2rem;">Studio Access</h3>', unsafe_allow_html=True)
+        
+        auth_mode = st.radio("Access Level", ["Researcher Login", "New Studio Enrollment"], horizontal=True)
+        
+        email = st.text_input("Atelier Email")
+        password = st.text_input("Credentials", type="password")
+        
+        if auth_mode == "Researcher Login":
+            if st.button("Enter Studio"):
                 try:
                     res = db.auth.sign_in_with_password({"email": email, "password": password})
                     st.session_state.user = res.user
                     st.rerun()
-                except Exception as e: st.error(e)
-            if st.button("Request Credentials"):
-                st.session_state.auth_mode = "Register"
-                st.rerun()
+                except Exception as e:
+                    st.error(f"Access Denied: {str(e)}")
         else:
-            name = st.text_input("Full Name")
-            if st.button("Join Archive", use_container_width=True):
+            if st.button("Enroll Researcher"):
                 try:
                     res = db.auth.sign_up({"email": email, "password": password})
-                    if res.user:
-                        db.table("profiles").insert({"id": res.user.id, "full_name": name}).execute()
-                        st.success("Signed Up! Check email.")
-                        st.session_state.auth_mode = "Login"
-                        st.rerun()
-                except Exception as e: st.error(e)
-            if st.button("Back to Security Desk"):
-                st.session_state.auth_mode = "Login"
-                st.rerun()
+                    st.success("Enrollment requested. Please check your secure inbox.")
+                except Exception as e:
+                    st.error(f"Enrollment Error: {str(e)}")
+        
         st.markdown('</div>', unsafe_allow_html=True)
         return False
     return True
@@ -249,26 +289,27 @@ def auth_gate():
 if not auth_gate():
     st.stop()
 
-# --- SIDEBAR: CONTROL PANEL ---
+# Sidebar: The Curator's Panel
 with st.sidebar:
-    st.markdown("<h1 style='color:#e2e8f0; font-size: 1.5rem; margin-bottom:0;'>OPERATOR</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#D4AF37; font-size: 0.7rem; letter-spacing: 0.3em; margin-bottom: 2rem;'>SECURITY CLEARANCE: ACTIVE</p>", unsafe_allow_html=True)
+    st.markdown("<h1>The Curator's Panel</h1>", unsafe_allow_html=True)
     
-    # Session Info
-    with st.expander("👤 ARCHIVE PROFILE", expanded=False):
-        st.write(f"ID: {st.session_state.user.email}")
-        if st.button("TERMINATE SESSION", use_container_width=True):
-            db.auth.sign_out()
+    with st.expander("👤 ATELIER PROFILE", expanded=False):
+        st.info(f"Identity: {st.session_state.user.email}")
+        if st.button("Exit Studio"):
+            db.auth.sign_out() # Changed supabase to db
             st.session_state.user = None
             st.rerun()
+
+    st.markdown("---")
+    # Project Selection / Allocation
+    res = db.table("projects").select("*").eq("owner_id", st.session_state.user.id).execute()
+    projects = res.data
+    p_names = [p["name"] for p in projects]
     
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # Project Allocation
-    st.markdown("<p style='font-size: 0.8rem; font-weight: 700; color: #94a3b8;'>INTELLIGENCE SECTOR</p>", unsafe_allow_html=True)
-    projects = db.table("projects").select("*").order("created_at", desc=True).execute().data or []
+    st.markdown("### Active Sectors")
+    # Determine active_project and project_id based on selection
     if projects:
-        sel = st.selectbox("Select Active Sector", [p['name'] for p in projects], label_visibility="collapsed")
+        sel = st.selectbox("Select Project Sector", p_names, key="sidebar_project_select")
         active_project = next(p for p in projects if p['name'] == sel)
         st.session_state.project_id = active_project['id']
     else:
@@ -287,24 +328,29 @@ with st.sidebar:
             st.rerun()
 
     st.markdown("---")
-    st.markdown("<p style='font-size: 0.6rem; color: #475569; text-align: center;'>OBSIDIAN ARCHIVE v9.0.4<br>© 2026 ANTIGRAVITY AI</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 0.6rem; color: #121212; text-align: center; opacity: 0.5;'>THE ATELIER v2.0.0<br>© 2026 ANTIGRAVITY AI</p>", unsafe_allow_html=True)
 
 # --- MAIN UI ---
-st.markdown('<h1 class="main-header">ELITE RESEARCH SCOUT</h1>', unsafe_allow_html=True)
 if st.session_state.project_id:
-    st.markdown(f'<div class="sector-badge"><span class="pulse-dot"></span>ACTIVE SECTOR: {active_project["name"]}</div>', unsafe_allow_html=True)
+    st.markdown(f'<p class="sector-badge">Active Sector: {active_project["name"]}</p>', unsafe_allow_html=True)
     
-    tabs = st.tabs(["🔍 Scout", "📥 Ingest", "📚 Library", "🧾 Export", "✍️ Synthesis"])
+    tabs = st.tabs([
+        "🔍 Current Intelligence", 
+        "📥 Resource Acquisitions", 
+        "📚 The Research Archive", 
+        "🧾 Intelligence Dossier", 
+        "✍️ Manuscripts & Drafts"
+    ])
     
-    # 🔍 SCOUT
+    # 🔍 CURRENT INTELLIGENCE (SCOUT)
     with tabs[0]:
-        st.markdown('<div class="obs-card"><h3>Global Intelligence Scout</h3><p>Query Global Graphs and Web Frontiers.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="atelier-card"><h3>Global Intelligence Scout</h3><p>Query Global Graphs and Web Frontiers.</p></div>', unsafe_allow_html=True)
         q = st.text_input("Intelligence Objective")
         col1, col2 = st.columns(2)
-        grey = col1.toggle("Grey Literature")
-        pilot = col2.toggle("Auto-Pilot")
+        grey = col1.toggle("Grey Literature Search")
+        pilot = col2.toggle("Auto-Pilot Loop")
         
-        if st.button("🚀 Execute Loop", use_container_width=True):
+        if st.button("🚀 Execute Search", use_container_width=True):
             with st.status("Executing Intelligence Loop...") as status:
                 st.markdown("#### 🧠 Internal Memory Scan")
                 loc = db.table("papers").select("*").ilike("title", f"%{q}%").execute().data or []
@@ -330,8 +376,8 @@ if st.session_state.project_id:
                 st.markdown("#### 🌐 Global Intelligence")
                 for p in results:
                     with st.container():
-                        st.markdown(f"<div class='obs-card' style='padding:1rem; margin-bottom: 0.5rem; border-left: 2px solid #D4AF37;'><b>{p['title']}</b> ({p.get('year','n.a')})</div>", unsafe_allow_html=True)
-                        if st.button("Save to Archive", key=f"s_{p['title']}"):
+                        st.markdown(f"<div class='atelier-card' style='padding:1.5rem; margin-bottom: 0.5rem;'><b>{p['title']}</b> ({p.get('year','n.a')})</div>", unsafe_allow_html=True)
+                        if st.button("Archive Discovery", key=f"s_{p['title']}"):
                             db.table("papers").insert({
                                 "project_id": st.session_state.project_id,
                                 "title": p['title'], "authors": [a.get('name','Anon') for a in p.get('authors',[])],
@@ -340,9 +386,9 @@ if st.session_state.project_id:
                             st.toast("Saved!")
                 status.update(label="Loop Complete", state="complete")
 
-    # 📥 INGEST
+    # 📥 RESOURCE ACQUISITIONS (INGEST)
     with tabs[1]:
-        st.markdown('<div class="obs-card"><h3>Digital Archive Ingest</h3><p>Upload PDFs or Scrape URLs with Agentic Extraction.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="atelier-card"><h3>Resource Acquisition Station</h3><p>Secure PDFs or ingest URLs with refined extraction.</p></div>', unsafe_allow_html=True)
         mode = st.radio("Channel", ["PDF", "URL"], horizontal=True)
         if mode == "PDF":
             up = st.file_uploader("Source PDF", type="pdf")
@@ -397,9 +443,9 @@ if st.session_state.project_id:
                     else:
                         st.error("Paper not found in Graph.")
 
-    # 🧾 EXPORT
+    # 🧾 INTELLIGENCE DOSSIER (EXPORT)
     with tabs[3]:
-        st.markdown('<div class="obs-card"><h3>Intelligence Export Lounge</h3></div>', unsafe_allow_html=True)
+        st.markdown('<div class="atelier-card"><h3>Intelligence Dossier Export</h3><p>Prepare the final handover documents for the sector.</p></div>', unsafe_allow_html=True)
         p_exp = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
         if p_exp:
             exp_col1, exp_col2, exp_col3 = st.columns(3)
@@ -423,9 +469,9 @@ if st.session_state.project_id:
                             status.update(label="Notion Sync Successful!", state="complete")
                     else: st.warning("Notion credentials missing in secrets.")
 
-    # ✍️ SYNTHESIS
+    # ✍️ MANUSCRIPTS & DRAFTS (SYNTHESIS)
     with tabs[4]:
-        st.markdown('<div class="obs-card"><h3>Agentic Synthesis Engine</h3><p>Grounded strictly in project archives.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="atelier-card"><h3>Editorial Synthesis Engine</h3><p>Grounded strictly in the curated project archives.</p></div>', unsafe_allow_html=True)
         papers_rag = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
         kb = "\n".join([f"KEY: ({p['authors'][0] if p['authors'] else 'n.a'}, {p['year']}) | CONTENT: {p.get('abstract','')}" for p in papers_rag])
         if pr := st.chat_input("Synthesize intelligence..."):
