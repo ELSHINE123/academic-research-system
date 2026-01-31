@@ -22,179 +22,121 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Custom Premium CSS: THE FACTORY
+# Custom Premium CSS: THE FACTORY 2.0
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-    /* Premium Core: The Ivory Canvas */
-    .stApp {
+    /* Absolute Ivory Force */
+    .stApp, [data-testid="stAppViewContainer"], .main {
         background: #FAF9F6 !important;
         background-image: 
             radial-gradient(at 0% 0%, rgba(197, 160, 33, 0.03) 0px, transparent 50%),
             url("https://www.transparenttextures.com/patterns/natural-paper.png") !important;
         color: #121212 !important;
-        font-family: 'Inter', sans-serif;
     }
 
-    /* Remove Streamlit Header Void */
+    /* Total Header Deletion */
     header, [data-testid="stHeader"] {
         background: transparent !important;
-        border-bottom: 1px solid rgba(18, 18, 18, 0.05) !important;
-    }
-    header::before, [data-testid="stHeader"]::before {
-        display: none !important;
-    }
-
-    /* Elegant Typography */
-    h1, h2, h3, .main-header {
-        font-family: 'Playfair Display', serif !important;
-        font-weight: 700 !important;
-        letter-spacing: -0.01em !important;
-        color: #121212 !important;
-    }
-
-    /* Hero Section: The Factory Identity */
-    .main-header {
-        font-size: 4.5rem !important;
-        line-height: 1 !important;
-        margin-bottom: 0rem !important;
-        text-align: center;
-        border-bottom: 1px solid #121212;
-        padding-bottom: 0.5rem;
-        margin-top: 2rem;
-        animation: heroFade 1.2s ease-out;
-    }
-    @keyframes heroFade {
-        from { opacity: 0; letter-spacing: 0.5em; }
-        to { opacity: 1; letter-spacing: normal; }
-    }
-    .sub-header {
-        color: #C5A021;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.6em;
-        text-align: center;
-        margin-top: 1rem;
-        margin-bottom: 4rem;
-        font-weight: 400;
-        opacity: 0.8;
-    }
-
-    /* Sidebar: The Curator's Panel */
-    [data-testid="stSidebar"] {
-        background: #ffffff !important;
-        border-right: 1px solid rgba(18, 18, 18, 0.08);
-    }
-    [data-testid="stSidebar"] section {
-        padding-top: 2rem !important;
+        height: 0px !important;
+        overflow: hidden !important;
     }
     
-    /* Refined Buttons (Smaller, More Elegant) */
-    .stButton>button {
+    /* Slim & Elegant Sidebar */
+    [data-testid="stSidebar"] {
         background: #ffffff !important;
-        color: #121212 !important;
-        font-weight: 400 !important;
-        font-size: 0.75rem !important;
-        border-radius: 0px !important;
-        border: 1px solid rgba(18, 18, 18, 0.15) !important;
-        padding: 0.4rem 1.2rem !important;
+        border-right: 1px solid rgba(18, 18, 18, 0.05);
+        box-shadow: 10px 0 30px rgba(0,0,0,0.02);
+    }
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+        padding-top: 2rem !important;
+        gap: 0.5rem !important;
+    }
+    
+    /* Vertical Navigation Control */
+    .nav-label {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.65rem;
         text-transform: uppercase;
         letter-spacing: 0.2em;
-        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+        color: #C5A021;
+        margin: 2rem 0 0.5rem 0;
+        padding-left: 0.5rem;
+    }
+
+    /* Refined Button Scaling */
+    .stButton>button {
+        background: transparent !important;
+        color: #121212 !important;
+        font-size: 0.75rem !important;
+        border: 1px solid rgba(18, 18, 18, 0.1) !important;
+        border-radius: 2px !important;
+        padding: 0.4rem 0.8rem !important;
         width: 100% !important;
-        margin-bottom: 0.5rem !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
+        transition: all 0.3s ease !important;
     }
     .stButton>button:hover {
         background: #121212 !important;
         color: #FAF9F6 !important;
         border-color: #121212 !important;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    /* Hero Section: The Factory Identity */
+    .main-header {
+        font-family: 'Playfair Display', serif !important;
+        font-size: 4rem !important;
+        font-weight: 700 !important;
+        text-align: center;
+        margin-top: 3rem !important;
+        border-bottom: 2px solid #121212;
+        padding-bottom: 1rem;
+        animation: slideIn 1s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .sub-header {
+        font-family: 'Inter', sans-serif;
+        color: #C5A021;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5em;
+        text-align: center;
+        margin-top: 1rem;
+        margin-bottom: 5rem;
     }
 
-    /* Factory Cards with Interaction */
+    /* Factory Cards: Boutique Feel */
     .factory-card {
         background: #ffffff;
         border: 1px solid rgba(18, 18, 18, 0.05);
         padding: 2.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.01);
-        transition: all 0.4s ease;
-    }
-    .factory-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.03);
-        border-color: rgba(197, 160, 33, 0.2);
+        margin-bottom: 2rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.01);
     }
 
-    /* Tabs: No Shadows, Pure Clarity */
-    .stTabs [data-baseweb="tab-list"] {
-        background: transparent !important;
-        border-bottom: 1px solid rgba(18, 18, 18, 0.08) !important;
-        gap: 2rem;
-        justify-content: center;
-        margin-bottom: 4rem;
-        overflow: visible !important;
-    }
-    .stTabs [data-baseweb="tab-list"]::after {
-        display: none !important; /* Fix for that annoying right shadow */
-    }
-    .stTabs [data-baseweb="tab"] {
-        background: transparent !important;
-        color: #94A3B8 !important;
-        font-family: 'Playfair Display', serif !important;
-        font-size: 0.95rem !important;
-        border: none !important;
-        transition: color 0.3s ease;
-    }
-    .stTabs [aria-selected="true"] {
-        color: #121212 !important;
-        border-bottom: 2px solid #C5A021 !important;
-    }
-
-    /* Auth Page: High Contrast Restoration */
-    [data-testid="stWidgetLabel"] p {
-        color: #121212 !important;
-        font-weight: 500 !important;
-        letter-spacing: 0.05em;
-    }
-    .stTextInput input {
-        background: #ffffff !important;
-        border: 1px solid rgba(18, 18, 18, 0.1) !important;
-        border-radius: 2px !important;
-        color: #121212 !important;
-        padding: 1rem !important;
-        height: 3rem !important;
-    }
-    .stTextInput input:focus {
-        border-color: #C5A021 !important;
-        box-shadow: 0 0 0 1px #C5A021 !important;
-    }
-    [data-testid="stRadio"] label p {
-        color: #121212 !important;
-    }
-
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-        background: #FAF9F6;
-    }
-    ::-webkit-scrollbar-thumb {
-        background: rgba(18, 18, 18, 0.1);
-        border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-        background: #C5A021;
-    }
-
-    /* Clean Selectbox */
+    /* Custom Selection Styling */
     .stSelectbox [data-baseweb="select"] {
         background: #ffffff !important;
         border: 1px solid rgba(18, 18, 18, 0.1) !important;
-        border-radius: 0px !important;
+        font-size: 0.85rem !important;
     }
+    
+    /* High Contrast Text Inputs */
+    .stTextInput input {
+        background: #ffffff !important;
+        color: #121212 !important;
+        border: 1px solid rgba(18, 18, 18, 0.2) !important;
+        padding: 0.8rem !important;
+    }
+    
+    /* Scrollbar Ivory & Gold */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: #C5A021; border-radius: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -358,6 +300,16 @@ with st.sidebar:
                 except Exception as e:
                     st.error(f"Deletion Failed: {e}")
 
+    st.markdown('<p class="nav-label">CONTROL DECK</p>', unsafe_allow_html=True)
+    nav_options = [
+        "🔍 Current Intelligence", 
+        "📥 Resource Acquisitions", 
+        "📚 The Research Archive", 
+        "🧾 Intelligence Dossier", 
+        "✍️ Manuscripts & Drafts"
+    ]
+    selection = st.radio("Navigation", nav_options, label_visibility="collapsed")
+
     st.markdown("---")
     st.markdown("<p style='font-size: 0.6rem; color: #121212; text-align: center; opacity: 0.5;'>THE FACTORY<br>© 2026 ANTIGRAVITY AI</p>", unsafe_allow_html=True)
 
@@ -365,16 +317,8 @@ with st.sidebar:
 if st.session_state.project_id:
     st.markdown(f'<div class="sector-badge">WORKSPACE ID: {active_project["id"][:8].upper()} — SEC. {active_project["name"].upper()}</div>', unsafe_allow_html=True)
     
-    tabs = st.tabs([
-        "🔍 Current Intelligence", 
-        "📥 Resource Acquisitions", 
-        "📚 The Research Archive", 
-        "🧾 Intelligence Dossier", 
-        "✍️ Manuscripts & Drafts"
-    ])
-    
     # 🔍 CURRENT INTELLIGENCE (SCOUT)
-    with tabs[0]:
+    if selection == "🔍 Current Intelligence":
         st.markdown('<div class="factory-card"><h3>Global Intelligence Scout</h3><p>Query Global Graphs and Web Frontiers.</p></div>', unsafe_allow_html=True)
         q = st.text_input("Intelligence Objective")
         col1, col2 = st.columns(2)
@@ -418,7 +362,7 @@ if st.session_state.project_id:
                 status.update(label="Loop Complete", state="complete")
 
     # 📥 RESOURCE ACQUISITIONS (INGEST)
-    with tabs[1]:
+    elif selection == "📥 Resource Acquisitions":
         st.markdown('<div class="factory-card"><h3>Resource Acquisition Station</h3><p>Secure PDFs or ingest URLs with refined extraction.</p></div>', unsafe_allow_html=True)
         mode = st.radio("Channel", ["PDF", "URL"], horizontal=True)
         if mode == "PDF":
@@ -445,7 +389,7 @@ if st.session_state.project_id:
                     st.success("Web Intelligence Captured!")
 
     # 📚 LIBRARY
-    with tabs[2]:
+    elif selection == "📚 The Research Archive":
         paps = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
         if paps:
             df = pd.DataFrame(paps)
@@ -475,7 +419,7 @@ if st.session_state.project_id:
                         st.error("Paper not found in Graph.")
 
     # 🧾 INTELLIGENCE DOSSIER (EXPORT)
-    with tabs[3]:
+    elif selection == "🧾 Intelligence Dossier":
         st.markdown('<div class="factory-card"><h3>Intelligence Dossier Export</h3><p>Prepare the final handover documents for the sector.</p></div>', unsafe_allow_html=True)
         p_exp = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
         if p_exp:
@@ -501,7 +445,7 @@ if st.session_state.project_id:
                     else: st.warning("Notion credentials missing in secrets.")
 
     # ✍️ MANUSCRIPTS & DRAFTS (SYNTHESIS)
-    with tabs[4]:
+    elif selection == "✍️ Manuscripts & Drafts":
         st.markdown('<div class="factory-card"><h3>Editorial Synthesis Engine</h3><p>Grounded strictly in the curated project archives.</p></div>', unsafe_allow_html=True)
         papers_rag = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
         kb = "\n".join([f"KEY: ({p['authors'][0] if p['authors'] else 'n.a'}, {p['year']}) | CONTENT: {p.get('abstract','')}" for p in papers_rag])
