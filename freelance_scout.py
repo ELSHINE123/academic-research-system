@@ -16,17 +16,17 @@ import xml.etree.ElementTree as ET
 
 # --- CONFIGURATION & MODELS ---
 st.set_page_config(
-    page_title="Elite Research Scout",
-    page_icon="⚜️",
+    page_title="THE FACTORY",
+    page_icon="🏭",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# Custom Premium CSS: THE ATELIER
+# Custom Premium CSS: THE FACTORY
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-    /* Atelier Core */
+    /* Factory Core */
     .stApp {
         background: #FAF9F6;
         background-image: 
@@ -78,7 +78,7 @@ st.markdown("""
         padding-bottom: 0.5rem;
     }
     
-    /* Atelier Buttons */
+    /* Factory Buttons */
     .stButton>button {
         background: transparent !important;
         color: #121212 !important;
@@ -96,8 +96,8 @@ st.markdown("""
         padding-left: 2.5rem !important;
     }
 
-    /* Atelier Cards */
-    .atelier-card {
+    /* Factory Cards */
+    .factory-card {
         background: #ffffff;
         border: 1px solid rgba(18, 18, 18, 0.08);
         padding: 3rem;
@@ -110,7 +110,7 @@ st.markdown("""
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
     }
-    .atelier-card::before {
+    .factory-card::before {
         content: "";
         position: absolute;
         top: 0; left: 0; width: 4px; height: 100%;
@@ -118,7 +118,7 @@ st.markdown("""
         opacity: 0;
         transition: opacity 0.3s ease;
     }
-    .atelier-card:hover::before {
+    .factory-card:hover::before {
         opacity: 1;
     }
 
@@ -252,22 +252,22 @@ if st.session_state.user:
         pass
 
 # Main Cinematic Header
-st.markdown('<h1 class="main-header">THE ATELIER</h1>', unsafe_allow_html=True)
-st.markdown('<p class="sub-header">ELITE RESEARCH SCOUT V2.0</p>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-header">THE FACTORY</h1>', unsafe_allow_html=True)
+st.markdown('<p class="sub-header">PRECISION RESEARCH ENGINE V2.0</p>', unsafe_allow_html=True)
 
-# Auth Gate Logic with Obsidian Card
+# Auth Gate Logic with Factory Card
 def auth_gate():
     if not st.session_state.user:
-        st.markdown('<div class="atelier-card" style="max-width:550px; margin: 100px auto auto;">', unsafe_allow_html=True)
-        st.markdown('<h3 style="text-align:center; margin-bottom: 2rem;">Studio Access</h3>', unsafe_allow_html=True)
+        st.markdown('<div class="factory-card" style="max-width:550px; margin: 100px auto auto;">', unsafe_allow_html=True)
+        st.markdown('<h3 style="text-align:center; margin-bottom: 2rem;">Factory Access</h3>', unsafe_allow_html=True)
         
-        auth_mode = st.radio("Access Level", ["Researcher Login", "New Studio Enrollment"], horizontal=True)
+        auth_mode = st.radio("Access Level", ["Operator Login", "New Studio Enrollment"], horizontal=True)
         
-        email = st.text_input("Atelier Email")
+        email = st.text_input("Personnel Email")
         password = st.text_input("Credentials", type="password")
         
-        if auth_mode == "Researcher Login":
-            if st.button("Enter Studio"):
+        if auth_mode == "Operator Login":
+            if st.button("Enter Factory"):
                 try:
                     res = db.auth.sign_in_with_password({"email": email, "password": password})
                     st.session_state.user = res.user
@@ -275,7 +275,7 @@ def auth_gate():
                 except Exception as e:
                     st.error(f"Access Denied: {str(e)}")
         else:
-            if st.button("Enroll Researcher"):
+            if st.button("Register Operator"):
                 try:
                     res = db.auth.sign_up({"email": email, "password": password})
                     st.success("Enrollment requested. Please check your secure inbox.")
@@ -293,9 +293,9 @@ if not auth_gate():
 with st.sidebar:
     st.markdown("<h1>The Curator's Panel</h1>", unsafe_allow_html=True)
     
-    with st.expander("👤 ATELIER PROFILE", expanded=False):
+    with st.expander("👤 OPERATOR PROFILE", expanded=False):
         st.info(f"Identity: {st.session_state.user.email}")
-        if st.button("Exit Studio"):
+        if st.button("Exit Factory"):
             db.auth.sign_out() # Changed supabase to db
             st.session_state.user = None
             st.rerun()
@@ -327,24 +327,39 @@ with st.sidebar:
             }).execute()
             st.rerun()
 
+    if st.session_state.project_id:
+        st.markdown("<br>", unsafe_allow_html=True)
+        with st.popover("🗑️ DECOMMISSION SECTOR", use_container_width=True):
+            st.warning("This will permanently incinerate all intelligence records within this sector.")
+            if st.button("CONFIRM DECOMMISSIONING"):
+                try:
+                    # Cascade delete should handle papers if configured, but let's be safe
+                    db.table("papers").delete().eq("project_id", st.session_state.project_id).execute()
+                    db.table("projects").delete().eq("id", st.session_state.project_id).execute()
+                    st.session_state.project_id = None
+                    st.success("Sector Decommissioned.")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Decommissioning Failed: {e}")
+
     st.markdown("---")
-    st.markdown("<p style='font-size: 0.6rem; color: #121212; text-align: center; opacity: 0.5;'>THE ATELIER v2.0.0<br>© 2026 ANTIGRAVITY AI</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 0.6rem; color: #121212; text-align: center; opacity: 0.5;'>THE FACTORY v2.1.0<br>© 2026 ANTIGRAVITY AI</p>", unsafe_allow_html=True)
 
 # --- MAIN UI ---
 if st.session_state.project_id:
     st.markdown(f'<p class="sector-badge">Active Sector: {active_project["name"]}</p>', unsafe_allow_html=True)
     
     tabs = st.tabs([
-        "🔍 Current Intelligence", 
-        "📥 Resource Acquisitions", 
-        "📚 The Research Archive", 
-        "🧾 Intelligence Dossier", 
-        "✍️ Manuscripts & Drafts"
+        "🔍 Market Intelligence", 
+        "📥 Raw Material Intake", 
+        "📚 Inventory & Archives", 
+        "🧾 Shipping & Logistics", 
+        "✍️ Precision Assembly"
     ])
     
-    # 🔍 CURRENT INTELLIGENCE (SCOUT)
+    # 🔍 MARKET INTELLIGENCE (SCOUT)
     with tabs[0]:
-        st.markdown('<div class="atelier-card"><h3>Global Intelligence Scout</h3><p>Query Global Graphs and Web Frontiers.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="factory-card"><h3>Market Intelligence Scanner</h3><p>Query Global Graphs and Web Frontiers.</p></div>', unsafe_allow_html=True)
         q = st.text_input("Intelligence Objective")
         col1, col2 = st.columns(2)
         grey = col1.toggle("Grey Literature Search")
@@ -376,7 +391,7 @@ if st.session_state.project_id:
                 st.markdown("#### 🌐 Global Intelligence")
                 for p in results:
                     with st.container():
-                        st.markdown(f"<div class='atelier-card' style='padding:1.5rem; margin-bottom: 0.5rem;'><b>{p['title']}</b> ({p.get('year','n.a')})</div>", unsafe_allow_html=True)
+                        st.markdown(f"<div class='factory-card' style='padding:1.5rem; margin-bottom: 0.5rem;'><b>{p['title']}</b> ({p.get('year','n.a')})</div>", unsafe_allow_html=True)
                         if st.button("Archive Discovery", key=f"s_{p['title']}"):
                             db.table("papers").insert({
                                 "project_id": st.session_state.project_id,
@@ -386,9 +401,9 @@ if st.session_state.project_id:
                             st.toast("Saved!")
                 status.update(label="Loop Complete", state="complete")
 
-    # 📥 RESOURCE ACQUISITIONS (INGEST)
+    # 📥 RAW MATERIAL INTAKE (INGEST)
     with tabs[1]:
-        st.markdown('<div class="atelier-card"><h3>Resource Acquisition Station</h3><p>Secure PDFs or ingest URLs with refined extraction.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="factory-card"><h3>Intake Processing Unit</h3><p>Secure PDFs or ingest URLs with refined extraction.</p></div>', unsafe_allow_html=True)
         mode = st.radio("Channel", ["PDF", "URL"], horizontal=True)
         if mode == "PDF":
             up = st.file_uploader("Source PDF", type="pdf")
@@ -443,9 +458,9 @@ if st.session_state.project_id:
                     else:
                         st.error("Paper not found in Graph.")
 
-    # 🧾 INTELLIGENCE DOSSIER (EXPORT)
+    # 🧾 SHIPPING & LOGISTICS (EXPORT)
     with tabs[3]:
-        st.markdown('<div class="atelier-card"><h3>Intelligence Dossier Export</h3><p>Prepare the final handover documents for the sector.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="factory-card"><h3>Logistics & Distribution</h3><p>Prepare the final handover documents for the sector.</p></div>', unsafe_allow_html=True)
         p_exp = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
         if p_exp:
             exp_col1, exp_col2, exp_col3 = st.columns(3)
@@ -469,9 +484,9 @@ if st.session_state.project_id:
                             status.update(label="Notion Sync Successful!", state="complete")
                     else: st.warning("Notion credentials missing in secrets.")
 
-    # ✍️ MANUSCRIPTS & DRAFTS (SYNTHESIS)
+    # ✍️ PRECISION ASSEMBLY (SYNTHESIS)
     with tabs[4]:
-        st.markdown('<div class="atelier-card"><h3>Editorial Synthesis Engine</h3><p>Grounded strictly in the curated project archives.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="factory-card"><h3>Precision Assembly Unit</h3><p>Grounded strictly in the curated project archives.</p></div>', unsafe_allow_html=True)
         papers_rag = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
         kb = "\n".join([f"KEY: ({p['authors'][0] if p['authors'] else 'n.a'}, {p['year']}) | CONTENT: {p.get('abstract','')}" for p in papers_rag])
         if pr := st.chat_input("Synthesize intelligence..."):
