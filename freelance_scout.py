@@ -22,105 +22,124 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Custom Premium CSS for Luxury Analytics Terminal
+# Custom Premium CSS: THE OBSIDIAN ARCHIVE
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
-    /* Global Reset & Typography */
+    /* Obsidian Archive Core */
     .stApp {
-        background: radial-gradient(circle at top right, #1e293b, #0f172a);
-        color: #f8fafc;
+        background: #020617;
+        background-image: 
+            radial-gradient(at 0% 0%, rgba(30, 41, 59, 0.4) 0px, transparent 50%),
+            radial-gradient(at 100% 100%, rgba(15, 23, 42, 0.4) 0px, transparent 50%),
+            radial-gradient(at 50% 50%, rgba(2, 6, 23, 1) 0px, transparent 100%);
+        color: #e2e8f0;
         font-family: 'Inter', sans-serif;
     }
 
     h1, h2, h3, .main-header {
         font-family: 'Outfit', sans-serif !important;
         font-weight: 800 !important;
-        letter-spacing: -0.02em !important;
+        letter-spacing: -0.03em !important;
     }
 
-    /* Main Header Styling */
+    /* Cinematic Header */
     .main-header {
-        background: linear-gradient(90deg, #D4AF37 0%, #F97316 100%);
+        background: linear-gradient(135deg, #f8fafc 0%, #94a3b8 50%, #64748b 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-size: 3.5rem !important;
-        margin-bottom: 0rem !important;
-        text-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        font-size: 4rem !important;
+        margin-bottom: 0.5rem !important;
+        filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
     }
     .sub-header {
-        color: #94a3b8;
-        font-size: 1.1rem;
-        margin-top: -10px;
-        margin-bottom: 2.5rem;
-        font-weight: 300;
-        letter-spacing: 0.05em;
+        color: #D4AF37;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.4em;
+        margin-top: -15px;
+        margin-bottom: 4rem;
+        font-weight: 600;
+        opacity: 0.8;
     }
 
-    /* Sidebar Styling - Elite Dark */
+    /* Sidebar - Control Panel Aesthetic */
     [data-testid="stSidebar"] {
-        background-color: #0c111d !important;
-        border-right: 1px solid rgba(212, 175, 55, 0.15);
-        box-shadow: 5px 0 30px rgba(0,0,0,0.5);
+        background: linear-gradient(180deg, #0f172a 0%, #020617 100%) !important;
+        background-image: url("https://www.transparenttextures.com/patterns/brushed-alum.png") !important;
+        border-right: 1px solid rgba(255,255,255,0.05);
+        box-shadow: 10px 0 50px rgba(0,0,0,0.8);
     }
     
+    /* Neomorphic Buttons */
     .stButton>button {
-        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%) !important;
-        color: #0f172a !important;
-        font-weight: 700 !important;
-        border-radius: 12px !important;
-        border: none !important;
-        padding: 0.6rem 1.2rem !important;
+        background: #D4AF37 !important;
+        background: linear-gradient(145deg, #e5c05c, #b8860b) !important;
+        color: #020617 !important;
+        font-weight: 800 !important;
+        border-radius: 8px !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        padding: 0.8rem 1.5rem !important;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        transition: all 0.3s ease !important;
+        letter-spacing: 0.1em;
+        box-shadow: 4px 4px 12px rgba(0,0,0,0.4), -2px -2px 8px rgba(255,255,255,0.05) !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
     .stButton>button:hover {
-        box-shadow: 0 0 25px rgba(212,175,55,0.6) !important;
         transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(212,175,55,0.4) !important;
+        filter: brightness(1.1);
     }
 
-    /* Glassmorphic Tabs */
-    .stTabs [data-baseweb="tab-list"] {
-        background: rgba(255, 255, 255, 0.03);
-        padding: 5px;
-        border-radius: 16px;
-        backdrop-filter: blur(10px);
+    /* Obsidian Glass Containers */
+    .obs-card {
+        background: rgba(15, 23, 42, 0.4);
+        backdrop-filter: blur(30px) saturate(150%);
+        -webkit-backdrop-filter: blur(30px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        padding: 2.5rem;
         margin-bottom: 2rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Floating Pill Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        background: rgba(255, 255, 255, 0.02);
+        padding: 8px;
+        border-radius: 50px;
         border: 1px solid rgba(255,255,255,0.05);
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 4rem;
     }
     .stTabs [data-baseweb="tab"] {
-        border-radius: 12px !important;
-        padding: 10px 20px !important;
-        transition: all 0.3s ease;
-        color: #94a3b8 !important;
+        background: transparent !important;
+        border-radius: 50px !important;
+        padding: 12px 28px !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        border: none !important;
+        color: #64748b !important;
     }
     .stTabs [aria-selected="true"] {
-        background: rgba(212, 175, 55, 0.15) !important;
+        background: rgba(212, 175, 55, 1) !important;
+        color: #020617 !important;
+        box-shadow: 0 10px 20px rgba(212,175,55,0.3) !important;
+    }
+
+    /* Metrics & Stats */
+    [data-testid="stMetricValue"] {
         color: #D4AF37 !important;
+        font-weight: 800 !important;
     }
 
-    /* Premium Component Cards */
-    .res-card {
-        background: rgba(255, 255, 255, 0.02);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-left: 4px solid #D4AF37;
-        padding: 2rem;
-        border-radius: 20px;
-        margin-bottom: 1.5rem;
-        transition: all 0.3s ease;
-    }
-    .res-card:hover {
-        background: rgba(255, 255, 255, 0.04);
-        transform: translateY(-5px);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-        border-left-width: 8px;
-    }
-
-    /* Form Elements */
-    input, textarea, select {
-        border-radius: 12px !important;
+    /* Data Editor Theme */
+    div[data-testid="stDataFrame"] {
+        background: rgba(15, 23, 42, 0.6) !important;
+        border-radius: 16px !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -195,12 +214,12 @@ if st.session_state.user:
 
 def auth_gate():
     if not st.session_state.user:
-        st.markdown('<div class="res-card" style="max-width:500px; margin: 100px auto auto;">', unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align:center; color:#D4AF37;'>{st.session_state.auth_mode}</h1>", unsafe_allow_html=True)
-        email = st.text_input("Email")
-        password = st.text_input("Password", type="password")
+        st.markdown('<div class="obs-card" style="max-width:550px; margin: 100px auto auto;">', unsafe_allow_html=True)
+        st.markdown(f"<h1 style='text-align:center; color:#e2e8f0; margin-bottom: 2rem;'>{st.session_state.auth_mode}</h1>", unsafe_allow_html=True)
+        email = st.text_input("RESEARCHER EMAIL")
+        password = st.text_input("SECURITY CLEARANCE", type="password")
         if st.session_state.auth_mode == "Login":
-            if st.button("Unlock Terminal", use_container_width=True):
+            if st.button("AUTHENTICATE", use_container_width=True):
                 try:
                     res = db.auth.sign_in_with_password({"email": email, "password": password})
                     st.session_state.user = res.user
@@ -230,41 +249,52 @@ def auth_gate():
 if not auth_gate():
     st.stop()
 
-# --- SIDEBAR ---
+# --- SIDEBAR: CONTROL PANEL ---
 with st.sidebar:
-    st.markdown("<h2 style='color:#D4AF37;'>⚜️ Control</h2>", unsafe_allow_html=True)
-    st.write(f"Logged in: {st.session_state.user.email}")
-    if st.button("Logout", use_container_width=True):
-        db.auth.sign_out()
-        st.session_state.user = None
-        st.rerun()
-    st.markdown("---")
+    st.markdown("<h1 style='color:#e2e8f0; font-size: 1.5rem; margin-bottom:0;'>OPERATOR</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#D4AF37; font-size: 0.7rem; letter-spacing: 0.3em; margin-bottom: 2rem;'>SECURITY CLEARANCE: ACTIVE</p>", unsafe_allow_html=True)
     
+    # Session Info
+    with st.expander("👤 ARCHIVE PROFILE", expanded=False):
+        st.write(f"ID: {st.session_state.user.email}")
+        if st.button("TERMINATE SESSION", use_container_width=True):
+            db.auth.sign_out()
+            st.session_state.user = None
+            st.rerun()
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Project Allocation
+    st.markdown("<p style='font-size: 0.8rem; font-weight: 700; color: #94a3b8;'>INTELLIGENCE SECTOR</p>", unsafe_allow_html=True)
     projects = db.table("projects").select("*").order("created_at", desc=True).execute().data or []
     if projects:
-        sel = st.selectbox("Active Sector", [p['name'] for p in projects])
+        sel = st.selectbox("Select Active Sector", [p['name'] for p in projects], label_visibility="collapsed")
         active_project = next(p for p in projects if p['name'] == sel)
         st.session_state.project_id = active_project['id']
     else:
         st.session_state.project_id = None
-        st.warning("Create a project to start.")
+        st.info("No sectors allocated.")
     
+    st.markdown("<br>", unsafe_allow_html=True)
+    with st.popover("➕ NEW ALLOCATION", use_container_width=True):
+        new_p = st.text_input("New Sector Designation")
+        if st.button("INITIATE ALLOCATION") and new_p:
+            db.table("projects").insert({"name": new_p, "client_name": "Agency"}).execute()
+            st.rerun()
+
     st.markdown("---")
-    new_p = st.text_input("New Research Sector")
-    if st.button("Allocate Sector") and new_p:
-        db.table("projects").insert({"name": new_p, "client_name": "Agency"}).execute()
-        st.rerun()
+    st.markdown("<p style='font-size: 0.6rem; color: #475569; text-align: center;'>OBSIDIAN ARCHIVE v9.0.4<br>© 2026 ANTIGRAVITY AI</p>", unsafe_allow_html=True)
 
 # --- MAIN UI ---
-st.markdown('<h1 class="main-header">Elite Research Scout</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-header">ELITE RESEARCH SCOUT</h1>', unsafe_allow_html=True)
 if st.session_state.project_id:
-    st.markdown(f'<p class="sub-header">Active Sector: {active_project["name"]}</p>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sector-badge"><span class="pulse-dot"></span>ACTIVE SECTOR: {active_project["name"]}</div>', unsafe_allow_html=True)
     
     tabs = st.tabs(["🔍 Scout", "📥 Ingest", "📚 Library", "🧾 Export", "✍️ Synthesis"])
     
     # 🔍 SCOUT
     with tabs[0]:
-        st.markdown('<div class="res-card"><h3>Global Intelligence Scout</h3><p>Query Global Graphs and Web Frontiers.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="obs-card"><h3>Global Intelligence Scout</h3><p>Query Global Graphs and Web Frontiers.</p></div>', unsafe_allow_html=True)
         q = st.text_input("Intelligence Objective")
         col1, col2 = st.columns(2)
         grey = col1.toggle("Grey Literature")
@@ -296,7 +326,7 @@ if st.session_state.project_id:
                 st.markdown("#### 🌐 Global Intelligence")
                 for p in results:
                     with st.container():
-                        st.markdown(f"<div class='res-card' style='padding:15px; border-left-color:#F97316;'><b>{p['title']}</b> ({p.get('year','n.a')})</div>", unsafe_allow_html=True)
+                        st.markdown(f"<div class='obs-card' style='padding:1rem; margin-bottom: 0.5rem; border-left: 2px solid #D4AF37;'><b>{p['title']}</b> ({p.get('year','n.a')})</div>", unsafe_allow_html=True)
                         if st.button("Save to Archive", key=f"s_{p['title']}"):
                             db.table("papers").insert({
                                 "project_id": st.session_state.project_id,
@@ -308,7 +338,7 @@ if st.session_state.project_id:
 
     # 📥 INGEST
     with tabs[1]:
-        st.markdown('<div class="res-card"><h3>Digital Archive Ingest</h3><p>Upload PDFs or Scrape URLs with Agentic Extraction.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="obs-card"><h3>Digital Archive Ingest</h3><p>Upload PDFs or Scrape URLs with Agentic Extraction.</p></div>', unsafe_allow_html=True)
         mode = st.radio("Channel", ["PDF", "URL"], horizontal=True)
         if mode == "PDF":
             up = st.file_uploader("Source PDF", type="pdf")
@@ -365,7 +395,7 @@ if st.session_state.project_id:
 
     # 🧾 EXPORT
     with tabs[3]:
-        st.markdown('<div class="res-card"><h3>Intelligence Export Lounge</h3></div>', unsafe_allow_html=True)
+        st.markdown('<div class="obs-card"><h3>Intelligence Export Lounge</h3></div>', unsafe_allow_html=True)
         p_exp = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
         if p_exp:
             exp_col1, exp_col2, exp_col3 = st.columns(3)
@@ -391,7 +421,7 @@ if st.session_state.project_id:
 
     # ✍️ SYNTHESIS
     with tabs[4]:
-        st.markdown('<div class="res-card"><h3>Agentic Synthesis Engine</h3><p>Grounded strictly in project archives.</p></div>', unsafe_allow_html=True)
+        st.markdown('<div class="obs-card"><h3>Agentic Synthesis Engine</h3><p>Grounded strictly in project archives.</p></div>', unsafe_allow_html=True)
         papers_rag = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
         kb = "\n".join([f"KEY: ({p['authors'][0] if p['authors'] else 'n.a'}, {p['year']}) | CONTENT: {p.get('abstract','')}" for p in papers_rag])
         if pr := st.chat_input("Synthesize intelligence..."):
