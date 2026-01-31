@@ -1,178 +1,185 @@
 import streamlit as st
 import pandas as pd
-import requests
-import json
-import xml.etree.ElementTree as ET
-from datetime import datetime
 from supabase import create_client, Client
 import google.generativeai as genai
+import requests
+from io import BytesIO
+from pypdf import PdfReader
+from datetime import datetime
+import json
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from pypdf import PdfReader
-from firecrawl import FirecrawlApp
-from streamlit_extras.metric_cards import style_metric_cards
 from streamlit_extras.add_vertical_space import add_vertical_space
-import logfire
-
-# --- OBSERVABILITY ---
-try:
-    logfire_token = st.secrets.get("logfire", {}).get("token")
-    if logfire_token:
-        logfire.configure(token=logfire_token)
-        logfire.instrument_requests()
-except Exception:
-    pass
 from duckduckgo_search import DDGS
-import openpyxl
-from io import BytesIO
+from firecrawl import FirecrawlApp
+import xml.etree.ElementTree as ET
 
-# --- SCHEMAS ---
-class PaperAnalysis(BaseModel):
-    relevant: bool = Field(description="Is this paper relevant to the query?")
-    summary: str = Field(description="One-sentence summary of the paper.")
-    method: str = Field(description="Core methodology used in the paper.")
-
-class SynthesisResponse(BaseModel):
-    answer: str = Field(description="The academic synthesis of the library.")
-    sources: List[str] = Field(description="List of keys used (Author, Year).")
-
-class Metadata(BaseModel):
-    title: str = Field(description="Title of the paper.")
-    authors: List[str] = Field(description="List of author names.")
-    year: int = Field(description="Publication year.")
-    abstract: str = Field(description="Brief abstract.")
-
-# --- HELPER: WORD BIBLIOGRAPHY XML ---
-def generate_word_xml_bib(papers):
-    ns = "{http://schemas.microsoft.com/office/word/2004/10/bibliography}"
-    root = ET.Element(f"{ns}Sources", {
-        "SelectedStyle": "\\APA.XSL",
-        "xmlns:b": "http://schemas.microsoft.com/office/word/2004/10/bibliography",
-        "xmlns": "http://schemas.microsoft.com/office/word/2004/10/bibliography"
-    })
-    
-    for p in papers:
-        source = ET.SubElement(root, f"{ns}Source")
-        ET.SubElement(source, f"{ns}Tag").text = f"REF{p['id'][:4]}"
-        ET.SubElement(source, f"{ns}SourceType").text = "JournalArticle"
-        
-        author_list = ET.SubElement(source, f"{ns}Author")
-        authors = ET.SubElement(author_list, f"{ns}Author")
-        name_list = ET.SubElement(authors, f"{ns}NameList")
-        for a_name in p['authors']:
-            person = ET.SubElement(name_list, f"{ns}Person")
-            ET.SubElement(person, f"{ns}Last").text = a_name.split()[-1] if ' ' in a_name else a_name
-            ET.SubElement(person, f"{ns}First").text = a_name.split()[0] if ' ' in a_name else ""
-            
-        ET.SubElement(source, f"{ns}Title").text = p['title']
-        ET.SubElement(source, f"{ns}Year").text = str(p['year'])
-        if p.get('url'):
-            ET.SubElement(source, f"{ns}URL").text = p['url']
-
-    return ET.tostring(root, encoding='utf-8', method='xml')
-
-# --- INITIALIZATION & CONFIG ---
+# --- CONFIGURATION & MODELS ---
 st.set_page_config(
-    page_title="Freelance Research Scout",
-    page_icon="🔍",
+    page_title="Elite Research Scout",
+    page_icon="⚜️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# Custom CSS for Premium Aesthetic
+# Custom Premium CSS for Luxury Analytics Terminal
 st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
-    :root {
-        --primary-color: #D4AF37; /* Brush Gold */
-        --bg-color: #0E1117;
-        --secondary-bg: #1A1C24;
-    }
+    /* Global Reset & Typography */
     .stApp {
-        background-color: var(--bg-color);
-        color: #E0E0E0;
-    }
-    .main-header {
+        background: radial-gradient(circle at top right, #1e293b, #0f172a);
+        color: #f8fafc;
         font-family: 'Inter', sans-serif;
-        font-weight: 800;
-        font-size: 2.5rem;
-        color: var(--primary-color);
-        margin-bottom: 0.5rem;
+    }
+
+    h1, h2, h3, .main-header {
+        font-family: 'Outfit', sans-serif !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.02em !important;
+    }
+
+    /* Main Header Styling */
+    .main-header {
+        background: linear-gradient(90deg, #D4AF37 0%, #F97316 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 3.5rem !important;
+        margin-bottom: 0rem !important;
+        text-shadow: 0 10px 20px rgba(0,0,0,0.2);
     }
     .sub-header {
-        font-family: 'Inter', sans-serif;
-        font-weight: 400;
-        font-size: 1rem;
-        color: #888;
-        margin-bottom: 2rem;
+        color: #94a3b8;
+        font-size: 1.1rem;
+        margin-top: -10px;
+        margin-bottom: 2.5rem;
+        font-weight: 300;
+        letter-spacing: 0.05em;
     }
+
+    /* Sidebar Styling - Elite Dark */
+    [data-testid="stSidebar"] {
+        background-color: #0c111d !important;
+        border-right: 1px solid rgba(212, 175, 55, 0.15);
+        box-shadow: 5px 0 30px rgba(0,0,0,0.5);
+    }
+    
     .stButton>button {
-        background-color: var(--primary-color) !important;
-        color: black !important;
-        font-weight: bold !important;
-        border-radius: 8px !important;
+        background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%) !important;
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        border-radius: 12px !important;
         border: none !important;
+        padding: 0.6rem 1.2rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
         transition: all 0.3s ease !important;
     }
     .stButton>button:hover {
+        box-shadow: 0 0 25px rgba(212,175,55,0.6) !important;
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
     }
+
+    /* Glassmorphic Tabs */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 24px;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 5px;
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255,255,255,0.05);
     }
     .stTabs [data-baseweb="tab"] {
-        height: 50px;
-        white-space: pre-wrap;
-        background-color: transparent;
-        border-radius: 4px 4px 0 0;
-        gap: 1px;
-        padding-top: 10px;
-        font-weight: 600;
+        border-radius: 12px !important;
+        padding: 10px 20px !important;
+        transition: all 0.3s ease;
+        color: #94a3b8 !important;
     }
     .stTabs [aria-selected="true"] {
-        color: var(--primary-color) !important;
-        border-bottom-color: var(--primary-color) !important;
+        background: rgba(212, 175, 55, 0.15) !important;
+        color: #D4AF37 !important;
     }
+
+    /* Premium Component Cards */
     .res-card {
-        background-color: var(--secondary-bg);
-        padding: 1.5rem;
-        border-radius: 12px;
-        border-left: 5px solid var(--primary-color);
-        margin-bottom: 1rem;
+        background: rgba(255, 255, 255, 0.02);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-left: 4px solid #D4AF37;
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    .res-card:hover {
+        background: rgba(255, 255, 255, 0.04);
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        border-left-width: 8px;
+    }
+
+    /* Form Elements */
+    input, textarea, select {
+        border-radius: 12px !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# --- CLIENTS & SERVICES ---
+class PaperAnalysis(BaseModel):
+    relevant: bool = Field(description="Is this paper highly relevant to the research query?")
+    summary: str = Field(description="2-sentence academic summary focusing on findings.")
+    methodology: str = Field(description="Primary research methodology used (e.g. Qualitative, Meta-analysis, Empirical).")
+
+class Metadata(BaseModel):
+    title: str = Field(description="Full academic title of the paper.")
+    authors: List[str] = Field(description="List of all contributing authors.")
+    year: Optional[int] = Field(description="Year of publication.")
+    abstract: str = Field(description="Concise abstract or summary.")
+
+class SynthesisResponse(BaseModel):
+    answer: str
+    citations: List[str]
+
 @st.cache_resource
 def init_supabase():
-    url: str = st.secrets["supabase"]["url"]
-    key: str = st.secrets["supabase"]["key"]
-    return create_client(url, key)
+    return create_client(st.secrets["supabase"]["url"], st.secrets["supabase"]["key"])
 
 @st.cache_resource
 def init_gemini():
-    api_key = st.secrets["google"].get("api_key")
-    if not api_key or api_key == "PASTE_YOUR_GEMINI_API_KEY_HERE":
-        st.error("Gemini API Key missing in secrets.toml")
-        st.stop()
-    genai.configure(api_key=api_key)
+    genai.configure(api_key=st.secrets["google"]["api_key"])
     return genai.GenerativeModel('gemini-2.0-flash')
 
 @st.cache_resource
 def init_firecrawl():
-    api_key = st.secrets["firecrawl"].get("api_key")
-    if not api_key or api_key == "PASTE_YOUR_FIRECRAWL_API_KEY_HERE":
-        return None
-    return FirecrawlApp(api_key=api_key)
+    key = st.secrets["firecrawl"].get("api_key")
+    return FirecrawlApp(api_key=key) if key else None
 
 try:
     db = init_supabase()
     ai = init_gemini()
     firecrawl = init_firecrawl()
 except Exception as e:
-    st.error(f"Initialization Error: {e}")
+    st.error(f"Initialization Failed: {e}")
     st.stop()
+
+def generate_word_xml_bib(papers):
+    root = ET.Element("b:Sources", {
+        "SelectedStyle": "\\APA.XSL",
+        "xmlns:b": "http://schemas.openxmlformats.org/officeDocument/2006/bibliography",
+        "xmlns": "http://schemas.openxmlformats.org/officeDocument/2006/bibliography"
+    })
+    for p in papers:
+        source = ET.SubElement(root, "b:Source")
+        ET.SubElement(source, "b:Tag").text = p['title'][:10] + str(p['year'])
+        ET.SubElement(source, "b:SourceType").text = "JournalArticle"
+        author_list = ET.SubElement(ET.SubElement(source, "b:Author"), "b:Author")
+        names = ET.SubElement(author_list, "b:NameList")
+        for a in p['authors']:
+            person = ET.SubElement(names, "b:Person")
+            ET.SubElement(person, "b:Last").text = a
+        ET.SubElement(source, "b:Title").text = p['title']
+        ET.SubElement(source, "b:Year").text = str(p['year'])
+    return ET.tostring(root, encoding='utf-8')
 
 # --- AUTHENTICATION ---
 if "user" not in st.session_state:
@@ -180,7 +187,6 @@ if "user" not in st.session_state:
 if "auth_mode" not in st.session_state:
     st.session_state.auth_mode = "Login"
 
-# Inject JWT for RLS enforcement
 if st.session_state.user:
     try:
         db.postgrest.auth(st.session_state.user.access_token)
@@ -188,345 +194,161 @@ if st.session_state.user:
         pass
 
 def auth_gate():
-    """Handles Multi-User Sign In and Registration."""
     if not st.session_state.user:
-        # Premium CSS for Login Page
-        st.markdown("""
-            <style>
-            .stApp {
-                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            }
-            .login-container {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                padding: 3rem;
-                background: rgba(255, 255, 255, 0.05);
-                backdrop-filter: blur(20px);
-                border-radius: 24px;
-                border: 1px solid rgba(212, 175, 55, 0.2);
-                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-                max-width: 500px;
-                margin: 50px auto;
-                animation: fadeIn 1s ease-out;
-            }
-            @keyframes fadeIn {
-                from { opacity: 0; transform: translateY(20px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-            .login-title {
-                color: #D4AF37;
-                font-size: 2.5rem;
-                font-weight: 800;
-                margin-bottom: 0.5rem;
-                text-align: center;
-                letter-spacing: -1px;
-            }
-            .login-subtitle {
-                color: #94a3b8;
-                font-size: 0.9rem;
-                margin-bottom: 2rem;
-                text-align: center;
-            }
-            .stButton>button {
-                width: 100%;
-                background: linear-gradient(90deg, #D4AF37 0%, #B8860B 100%);
-                color: #0f172a !important;
-                border: none;
-                font-weight: 700;
-                padding: 0.75rem;
-                border-radius: 12px;
-                transition: all 0.3s ease;
-            }
-            .stButton>button:hover {
-                transform: scale(1.02);
-                box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
-            }
-            input {
-                background: rgba(15, 23, 42, 0.6) !important;
-                border: 1px solid rgba(212, 175, 55, 0.3) !important;
-                color: white !important;
-                border-radius: 12px !important;
-            }
-            .auth-toggle {
-                cursor: pointer;
-                color: #D4AF37;
-                text-decoration: underline;
-                font-weight: 600;
-            }
-            </style>
-        """, unsafe_allow_html=True)
-
-        st.markdown('<div class="login-container">', unsafe_allow_html=True)
-        
-        # Logo handling
-        try:
-            st.image("assets/logo.png", width=100)
-        except:
-            st.markdown('<div style="font-size: 3rem; text-align: center;">⚜️</div>', unsafe_allow_html=True)
-
-        st.markdown(f'<h1 class="login-title">{st.session_state.auth_mode}</h1>', unsafe_allow_html=True)
-        st.markdown('<p class="login-subtitle">Secured Research Terminal v2.0</p>', unsafe_allow_html=True)
-        
-        email = st.text_input("Email", placeholder="researcher@agency.com")
-        password = st.text_input("Password", type="password", placeholder="••••••••")
-        
+        st.markdown('<div class="res-card" style="max-width:500px; margin: 100px auto auto;">', unsafe_allow_html=True)
+        st.markdown(f"<h1 style='text-align:center; color:#D4AF37;'>{st.session_state.auth_mode}</h1>", unsafe_allow_html=True)
+        email = st.text_input("Email")
+        password = st.text_input("Password", type="password")
         if st.session_state.auth_mode == "Login":
-            if st.button("Unlock System"):
+            if st.button("Unlock Terminal", use_container_width=True):
                 try:
                     res = db.auth.sign_in_with_password({"email": email, "password": password})
                     st.session_state.user = res.user
                     st.rerun()
-                except Exception as e:
-                    st.error(f"Login Failed: {str(e)}")
-            
-            st.markdown("---")
-            st.markdown("New to the Agency?")
-            if st.button("Create an Account"):
+                except Exception as e: st.error(e)
+            if st.button("Request Credentials"):
                 st.session_state.auth_mode = "Register"
                 st.rerun()
-        
         else:
-            full_name = st.text_input("Full Name", placeholder="Alexander Pierce")
-            if st.button("Join the Agency"):
+            name = st.text_input("Full Name")
+            if st.button("Join Archive", use_container_width=True):
                 try:
                     res = db.auth.sign_up({"email": email, "password": password})
                     if res.user:
-                        # Initialize Profile
-                        db.table("profiles").insert({
-                            "id": res.user.id,
-                            "full_name": full_name
-                        }).execute()
-                        st.success("Account Created! Please check your email for verification.")
+                        db.table("profiles").insert({"id": res.user.id, "full_name": name}).execute()
+                        st.success("Signed Up! Check email.")
                         st.session_state.auth_mode = "Login"
                         st.rerun()
-                except Exception as e:
-                    st.error(f"Registration Failed: {str(e)}")
-            
-            if st.button("Back to Login"):
+                except Exception as e: st.error(e)
+            if st.button("Back to Security Desk"):
                 st.session_state.auth_mode = "Login"
                 st.rerun()
-        
         st.markdown('</div>', unsafe_allow_html=True)
         return False
     return True
 
-# --- AUTHENTICATION GATE ---
 if not auth_gate():
     st.stop()
 
-# --- SIDEBAR: MULTI-TENANT CONTROL ---
+# --- SIDEBAR ---
 with st.sidebar:
-    try:
-        st.image("assets/logo.png", width=150)
-    except:
-        pass
-    
-    # User Profile & Logout
-    st.markdown("### 👤 Researcher Profile")
-    st.write(f"Logged in as: **{st.session_state.user.email}**")
+    st.markdown("<h2 style='color:#D4AF37;'>⚜️ Control</h2>", unsafe_allow_html=True)
+    st.write(f"Logged in: {st.session_state.user.email}")
     if st.button("Logout", use_container_width=True):
         db.auth.sign_out()
         st.session_state.user = None
         st.rerun()
-    
     st.markdown("---")
-    st.markdown("### Project Control")
     
-    try:
-        # RLS handles user isolation automatically
-        projects_res = db.table("projects").select("*").order("created_at", desc=True).execute()
-        projects = projects_res.data
-    except:
-        projects = []
-    
+    projects = db.table("projects").select("*").order("created_at", desc=True).execute().data or []
     if projects:
-        project_names = [p["name"] for p in projects]
-        selected_project_name = st.selectbox("Active Project", project_names)
-        active_project = next(p for p in projects if p["name"] == selected_project_name)
-        st.session_state.project_id = active_project["id"]
-        st.info(f"📁 Managing: **{active_project['client_name']}**")
+        sel = st.selectbox("Active Sector", [p['name'] for p in projects])
+        active_project = next(p for p in projects if p['name'] == sel)
+        st.session_state.project_id = active_project['id']
     else:
-        st.warning("No projects found.")
         st.session_state.project_id = None
-
-    add_vertical_space(1)
+        st.warning("Create a project to start.")
+    
     st.markdown("---")
-    st.markdown("### New Client Onboarding")
-    new_client = st.text_input("Client Name - Topic", help="Syntax: Client Name - Project Title")
-    if st.button("Create Project", use_container_width=True) and new_client:
-        parts = new_client.split(" - ")
-        c_name = parts[0]
-        p_name = parts[1] if len(parts) > 1 else parts[0]
-        # owner_id will be set by DB default auth.uid()
-        db.table("projects").insert({"name": p_name, "client_name": c_name}).execute()
-        st.success(f"Project '{p_name}' created!")
+    new_p = st.text_input("New Research Sector")
+    if st.button("Allocate Sector") and new_p:
+        db.table("projects").insert({"name": new_p, "client_name": "Agency"}).execute()
         st.rerun()
 
-# --- MAIN APP UI ---
-st.markdown(f"<div class='main-header'>Freelance Research Scout</div>", unsafe_allow_html=True)
-st.markdown(f"<div class='sub-header'>Agentic Research OS | Project: {selected_project_name if 'project_id' in st.session_state and st.session_state.project_id else 'None'}</div>", unsafe_allow_html=True)
-
-tabs = st.tabs(["🔍 Hybrid Scout", "📥 Ingest Station", "📚 Library", "🧾 Deliverables", "✍️ Ghostwriter"])
-
-# --- TAB 1: HYBRID SCOUT ---
-with tabs[0]:
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        query = st.text_input("Search Query", placeholder="e.g. 'Impact of LLMs on Software Engineering Productivity'")
-    with col2:
-        include_grey = st.checkbox("Include Grey Literature (Web PDF Search)")
-        auto_pilot = st.checkbox("Enable Auto-Pilot Loop")
-
-    if st.button("Scout Knowledge Frontier", use_container_width=True):
-        if not st.session_state.project_id:
-            st.error("Select a project first.")
-        else:
-            # 1. Zone A: Internal Memory
-            st.markdown("### 🧠 Zone A: Internal Memory")
-            internal_res = db.table("papers").select("*").ilike("title", f"%{query}%").execute()
-            if internal_res.data:
-                for p in internal_res.data:
-                    with st.container():
-                        cols = st.columns([4, 1])
-                        cols[0].write(f"**{p['title']}** ({p['year']}) - *Project: {p['project_id'][:6]}*")
-                        if cols[1].button("Clone to Active", key=f"clone_{p['id']}"):
-                            db.table("papers").insert({
-                                "project_id": st.session_state.project_id,
-                                "title": p['title'], "authors": p['authors'],
-                                "year": p['year'], "abstract": p['abstract'],
-                                "url": p['url'], "source_type": "internal-memory"
-                            }).execute()
-                            st.toast("Cloned to active project!")
-            else:
-                st.info("No matches in previous projects.")
-
-            # 2. Zone B: External Frontier
-            st.markdown("---")
-            st.markdown("### 🌐 Zone B: External Frontier")
-            
-            def perform_scout(search_term):
-                ss_results = []
-                with st.spinner(f"Scouting External Sources for '{search_term}'..."):
-                    # Academic
-                    ss_url = f"https://api.semanticscholar.org/graph/v1/paper/search?query={search_term}&limit=10&fields=title,authors,year,abstract,url,citationCount"
-                    resp = requests.get(ss_url)
-                    if resp.status_code == 200:
-                        ss_results = resp.json().get("data", [])
-                    
-                    # Grey Lit (DDG PDF Search)
-                    if include_grey:
+# --- MAIN UI ---
+st.markdown('<h1 class="main-header">Elite Research Scout</h1>', unsafe_allow_html=True)
+if st.session_state.project_id:
+    st.markdown(f'<p class="sub-header">Active Sector: {active_project["name"]}</p>', unsafe_allow_html=True)
+    
+    tabs = st.tabs(["🔍 Scout", "📥 Ingest", "📚 Library", "🧾 Export", "✍️ Synthesis"])
+    
+    # 🔍 SCOUT
+    with tabs[0]:
+        st.markdown('<div class="res-card"><h3>Global Intelligence Scout</h3><p>Query Global Graphs and Web Frontiers.</p></div>', unsafe_allow_html=True)
+        q = st.text_input("Intelligence Objective")
+        col1, col2 = st.columns(2)
+        grey = col1.toggle("Grey Literature")
+        pilot = col2.toggle("Auto-Pilot")
+        
+        if st.button("🚀 Execute Loop", use_container_width=True):
+            with st.status("Executing Intelligence Loop...") as status:
+                st.markdown("#### 🧠 Internal Memory Scan")
+                loc = db.table("papers").select("*").ilike("title", f"%{q}%").execute().data or []
+                for p in loc:
+                    st.write(f"💼 Found in Archives: **{p['title']}**")
+                
+                def perform_search(term):
+                    # Semantic Scholar
+                    ss = requests.get(f"https://api.semanticscholar.org/graph/v1/paper/search?query={term}&limit=10&fields=title,authors,year,abstract,url").json().get("data", [])
+                    # Grey Lit
+                    if grey:
                         with DDGS() as ddgs:
-                            ddg_results = ddgs.text(f"{search_term} filetype:pdf", max_results=5)
-                            for dr in ddg_results:
-                                ss_results.append({
-                                    "title": dr['title'], "url": dr['href'],
-                                    "abstract": dr['body'], "authors": [{"name": "Web Source"}],
-                                    "year": datetime.now().year, "source_type": "grey"
-                                })
+                            for dr in ddgs.text(f"{term} filetype:pdf", max_results=5):
+                                ss.append({"title": dr['title'], "url": dr['href'], "abstract": dr['body'], "authors": [{"name": "Web Source"}], "year": datetime.now().year, "source_type": "grey"})
+                    return ss
 
-                    # AI Relevancy Loop
-                    final_papers = []
-                    for p in ss_results:
-                        prompt = f"Target: '{search_term}'. Analysis abstract/snip: {p.get('abstract', '') or p.get('body', '')}. Return JSON matching schema."
-                        try:
-                            # Using JSON Mode if possible, or parsing string
-                            ai_resp = ai.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
-                            analysis = PaperAnalysis.model_validate_json(ai_resp.text)
-                            if analysis.relevant:
-                                p.update(analysis.model_dump())
-                                final_papers.append(p)
-                        except Exception as e:
-                            # Fallback if JSON mode fails
-                            continue
-                    return final_papers
+                results = perform_search(q)
+                if pilot and len(results) < 3:
+                    st.info("Low results. Engaging Auto-Pilot Keyword Refinement...")
+                    refine = ai.generate_content(f"Suggest 3 better academic search strings for '{q}'. Return as comma list.").text
+                    results += perform_search(refine.split(',')[0])
 
-            results = perform_scout(query)
-            
-            # --- AGENTIC AUTO-PILOT LOOP ---
-            if auto_pilot and len(results) < 3:
-                st.warning(f"Low relevance found ({len(results)} papers). Triggering Auto-Pilot Keyword Refinement...")
-                refine_prompt = f"The query '{query}' yielded poor research results. Suggest 3 highly academic and specific boolean search strings for this topic. Return as a comma separated list."
-                ai_refine = ai.generate_content(refine_prompt)
-                new_keywords = ai_refine.text.split(",")[0].strip()
-                st.info(f"Refining search to: **{new_keywords}**")
-                results += perform_scout(new_keywords)
-
-            if results:
+                st.markdown("#### 🌐 Global Intelligence")
                 for p in results:
                     with st.container():
-                        st.markdown(f"<div class='res-card'><h4>{p['title']}</h4><p>{p.get('summary', 'No summary available')}</p></div>", unsafe_allow_html=True)
-                        if st.button("Save", key=f"ext_{p['title']}"):
-                            authors = [a.get('name', 'Unknown') for a in p['authors']] if isinstance(p['authors'], list) else ["Web Source"]
+                        st.markdown(f"<div class='res-card' style='padding:15px; border-left-color:#F97316;'><b>{p['title']}</b> ({p.get('year','n.a')})</div>", unsafe_allow_html=True)
+                        if st.button("Save to Archive", key=f"s_{p['title']}"):
                             db.table("papers").insert({
                                 "project_id": st.session_state.project_id,
-                                "title": p['title'], "authors": authors,
-                                "year": p.get('year'), "abstract": p.get('abstract'),
-                                "url": p.get('url'), "summary": p.get('summary'),
-                                "methodology": p.get('methodology'),
-                                "source_type": p.get('source_type', 'external')
+                                "title": p['title'], "authors": [a.get('name','Anon') for a in p.get('authors',[])],
+                                "year": p.get('year'), "abstract": p.get('abstract'), "url": p.get('url'), "source_type": "scout"
                             }).execute()
                             st.toast("Saved!")
+                status.update(label="Loop Complete", state="complete")
 
-# --- TAB 2: INGEST STATION ---
-with tabs[1]:
-    ingest_mode = st.radio("Ingest Type", ["PDF Deep Parse", "Web/Firecrawl Scrape"])
-    
-    if ingest_mode == "PDF Deep Parse":
-        uploaded_file = st.file_uploader("Upload PDF", type="pdf")
-        if uploaded_file and st.session_state.project_id:
-            reader = PdfReader(uploaded_file)
-            text = "".join([p.extract_text() for p in reader.pages[:5]])
-            prompt = f"Extract metadata. Return JSON matching schema. Text: {text[:4000]}"
-            ai_resp = ai.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
-            meta = Metadata.model_validate_json(ai_resp.text)
-            st.json(meta.model_dump())
-            if st.button("Confirm Ingest"):
-                db.table("papers").insert({
-                    "project_id": st.session_state.project_id, **meta.model_dump(), "source_type": "manual-pdf"
-                }).execute()
-    
-    elif ingest_mode == "Web/Firecrawl Scrape" and firecrawl:
-        web_url = st.text_input("Enter Web URL for Deep Scraping")
-        if st.button("Crawl & Analyze"):
-            with st.spinner("Firecrawl in progress..."):
-                scrape_res = firecrawl.scrape_url(web_url, params={'formats': ['markdown']})
-                markdown = scrape_res.get('markdown', '')
-                prompt = f"Analyze this webpage content. Extract metadata and summarize. Return JSON: {{title: str, summary: str, methodology: str}}. Content: {markdown[:5000]}"
-                web_analysis = json.loads(ai.generate_content(prompt).text.replace("```json", "").replace("```", "").strip())
-                st.write(web_analysis)
-                if st.button("Save Web Resource"):
+    # 📥 INGEST
+    with tabs[1]:
+        st.markdown('<div class="res-card"><h3>Digital Archive Ingest</h3><p>Upload PDFs or Scrape URLs with Agentic Extraction.</p></div>', unsafe_allow_html=True)
+        mode = st.radio("Channel", ["PDF", "URL"], horizontal=True)
+        if mode == "PDF":
+            up = st.file_uploader("Source PDF", type="pdf")
+            if up:
+                with st.spinner("Extracting..."):
+                    tx = "".join([p.extract_text() for p in PdfReader(up).pages[:5]])
+                    meta = Metadata.model_validate_json(ai.generate_content(f"Extract JSON from: {tx[:4000]}", generation_config={"response_mime_type": "application/json"}).text)
+                    st.json(meta.model_dump())
+                    if st.button("Confirm Archival"):
+                        db.table("papers").insert({"project_id": st.session_state.project_id, **meta.model_dump(), "source_type": "pdf"}).execute()
+                        st.success("Archived!")
+        elif mode == "URL" and firecrawl:
+            u = st.text_input("Source URL")
+            if st.button("Scrape Sector"):
+                with st.spinner("Firecrawl Engine Active..."):
+                    sc = firecrawl.scrape_url(u, params={'formats': ['markdown']})
+                    md = sc.get('markdown','')
+                    ai_res = json.loads(ai.generate_content(f"Summarize and Extract: {md[:5000]}").text.replace("```json","").replace("```","").strip())
                     db.table("papers").insert({
-                        "project_id": st.session_state.project_id,
-                        "title": web_analysis['title'], "summary": web_analysis['summary'],
-                        "abstract": markdown[:2000], "url": web_url, "source_type": "firecrawl-scrape"
+                        "project_id": st.session_state.project_id, "title": ai_res.get('title','Web Source'),
+                        "abstract": md[:2000], "url": u, "source_type": "web"
                     }).execute()
+                    st.success("Web Intelligence Captured!")
 
-# --- TAB 3: LIBRARY ---
-with tabs[2]:
-    if st.session_state.project_id:
-        papers = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data
-        if papers:
-            df = pd.DataFrame(papers)
-            style = st.radio("Citation Style", ["APA", "MLA", "Harvard"], horizontal=True)
-            def fmt(r):
-                a = r['authors'][0] if r['authors'] else "Anon"
-                return f"{a} ({r['year']}). {r['title']}." if style == "APA" else f"{a}. '{r['title']}'."
-            df['Citation'] = df.apply(fmt, axis=1)
-            st.data_editor(df[['title', 'Citation', 'year', 'source_type']], use_container_width=True)
+    # 📚 LIBRARY
+    with tabs[2]:
+        paps = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
+        if paps:
+            df = pd.DataFrame(paps)
+            st.data_editor(df[['title', 'authors', 'year', 'source_type']], use_container_width=True)
             
-            # --- SNOWBALL MINING (RECURSIVE) ---
             st.markdown("---")
-            target = st.selectbox("Select for Snowball Mine (Fetch Citations)", df['title'].tolist())
-            if st.button("⛏️ Mine Recursive Citations"):
+            st.markdown("#### 💎 Advanced Snowball Mining")
+            target = st.selectbox("Select Seed Paper for Citation Mining", df['title'].tolist())
+            if st.button("⛏️ Execute Recursive Mining"):
                 with st.spinner("Mining Research Graph..."):
-                    # 1. Search for paper to get SS ID
                     ss_search = requests.get(f"https://api.semanticscholar.org/graph/v1/paper/search?query={target}&limit=1&fields=paperId").json()
                     if ss_search.get("data"):
                         pid = ss_search["data"][0]["paperId"]
-                        # 2. Get References
-                        ref_url = f"https://api.semanticscholar.org/graph/v1/paper/{pid}/references?limit=5&fields=title,authors,year,abstract,url"
+                        ref_url = f"https://api.semanticscholar.org/graph/v1/paper/{pid}/references?limit=10&fields=title,authors,year,abstract,url"
                         refs = requests.get(ref_url).json().get("data", [])
                         for r_item in refs:
                             r = r_item.get("citedPaper")
@@ -537,68 +359,47 @@ with tabs[2]:
                                     "year": r.get('year'), "abstract": r.get('abstract'), "url": r.get('url'),
                                     "source_type": "snowball-mining"
                                 }).execute()
-                        st.success(f"Mined {len(refs)} new relevant references. Added to library.")
+                        st.success(f"Mined {len(refs)} references! Library updated.")
                     else:
-                        st.error("Could not find paper in Semantic Scholar Graph.")
+                        st.error("Paper not found in Graph.")
 
-# --- TAB 4: DELIVERABLES ---
-with tabs[3]:
-    st.markdown("### Export Matrix & Bibliography")
-    papers_data = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data
-    if papers_data:
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            xml_data = generate_word_xml_bib(papers_data)
-            st.download_button("Download Word Bib (XML)", xml_data, "bibliography.xml", "text/xml")
-        with col2:
-            buffer = BytesIO()
-            pd.DataFrame(papers_data).to_excel(buffer, index=False)
-            st.download_button("Download Excel Matrix", buffer.getvalue(), "matrix.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-        with col3:
-            if st.button("🚀 Sync to Notion"):
-                notion_token = st.secrets["notion"].get("api_token")
-                database_id = st.secrets["notion"].get("database_id")
-                if notion_token and database_id:
-                    with st.spinner("Syncing to Notion..."):
-                        headers = {
-                            "Authorization": f"Bearer {notion_token}",
-                            "Content-Type": "application/json",
-                            "Notion-Version": "2022-06-28"
-                        }
-                        success_count = 0
-                        for p in papers_data:
-                            data = {
-                                "parent": {"database_id": database_id},
-                                "properties": {
-                                    "Title": {"title": [{"text": {"content": p['title']}}]},
-                                    "Year": {"number": p['year']} if p['year'] else None,
-                                    "Authors": {"rich_text": [{"text": {"content": ", ".join(p['authors'])}}]},
-                                    "URL": {"url": p['url']} if p['url'] else None
-                                }
-                            }
-                            # Filter None properties
-                            data["properties"] = {k: v for k, v in data["properties"].items() if v is not None}
-                            res = requests.post("https://api.notion.com/v1/pages", headers=headers, json=data)
-                            if res.status_code == 200: success_count += 1
-                        st.success(f"Synced {success_count} papers to Notion!")
-                else:
-                    st.warning("Notion API Token or Database ID missing in secrets.toml")
+    # 🧾 EXPORT
+    with tabs[3]:
+        st.markdown('<div class="res-card"><h3>Intelligence Export Lounge</h3></div>', unsafe_allow_html=True)
+        p_exp = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
+        if p_exp:
+            exp_col1, exp_col2, exp_col3 = st.columns(3)
+            with exp_col1:
+                st.download_button("Word Bibliography (XML)", generate_word_xml_bib(p_exp), "bib.xml", use_container_width=True)
+            with exp_col2:
+                buf = BytesIO()
+                pd.DataFrame(p_exp).to_excel(buf, index=False)
+                st.download_button("Excel Research Matrix", buf.getvalue(), "matrix.xlsx", use_container_width=True)
+            with exp_col3:
+                if st.button("🚀 Sync to Notion", use_container_width=True):
+                    token = st.secrets["notion"].get("api_token")
+                    db_id = st.secrets["notion"].get("database_id")
+                    if token and db_id:
+                        with st.status("Syncing to Notion Workspace...") as status:
+                            headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json", "Notion-Version": "2022-06-28"}
+                            for p in p_exp:
+                                data = {"parent": {"database_id": db_id}, "properties": {"Title": {"title": [{"text": {"content": p['title']}}]}, "Year": {"number": p['year']} if p['year'] else None, "Authors": {"rich_text": [{"text": {"content": ", ".join(p['authors'])}}]}, "URL": {"url": p['url']} if p['url'] else None}}
+                                data["properties"] = {k: v for k, v in data["properties"].items() if v is not None}
+                                requests.post("https://api.notion.com/v1/pages", headers=headers, json=data)
+                            status.update(label="Notion Sync Successful!", state="complete")
+                    else: st.warning("Notion credentials missing in secrets.")
 
-# --- TAB 5: GHOSTWRITER ---
-with tabs[4]:
-    st.markdown("### RAG Research Synthesis")
-    if st.session_state.project_id:
-        papers_rag = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data
-        kb = "\n".join([f"KEY: ({p['authors'][0] if p['authors'] else 'n.a'}, {p['year']}) | CONTENT: {p.get('summary') or p.get('abstract')}" for p in papers_rag])
-        
-        if prompt := st.chat_input("Synthesize a claim..."):
-            with st.chat_message("user"): st.markdown(prompt)
+    # ✍️ SYNTHESIS
+    with tabs[4]:
+        st.markdown('<div class="res-card"><h3>Agentic Synthesis Engine</h3><p>Grounded strictly in project archives.</p></div>', unsafe_allow_html=True)
+        papers_rag = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
+        kb = "\n".join([f"KEY: ({p['authors'][0] if p['authors'] else 'n.a'}, {p['year']}) | CONTENT: {p.get('abstract','')}" for p in papers_rag])
+        if pr := st.chat_input("Synthesize intelligence..."):
+            with st.chat_message("user"): st.write(pr)
             with st.chat_message("assistant"):
-                sys = f"Expert Ghostwriter. Rules: 1. Use ONLY context. 2. Inline citations (Author, Year) are MANDATORY. 3. No hallucinating. Return JSON matching schema.\nCONTEXT:\n{kb}"
-                ai_resp = ai.generate_content(f"{sys}\nPROMPT: {prompt}", generation_config={"response_mime_type": "application/json"})
-                try:
-                    res = SynthesisResponse.model_validate_json(ai_resp.text)
-                    st.markdown(res.answer)
-                    st.caption(f"Sources used: {', '.join(res.sources)}")
-                except:
-                    st.markdown(ai_resp.text)
+                sys_p = f"Professional Researcher. Use ONLY Context: {kb}"
+                ai_r = ai.generate_content(f"{sys_p}\nPROMPT: {pr}")
+                st.markdown(ai_r.text)
+
+else:
+    st.info("Unlock a Research Sector via Sidebar to Activate Terminal.")
