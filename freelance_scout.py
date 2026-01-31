@@ -306,20 +306,20 @@ with st.sidebar:
     projects = res.data
     p_names = [p["name"] for p in projects]
     
-    st.markdown("### Active Sectors")
+    st.markdown("### Active Workspaces")
     # Determine active_project and project_id based on selection
     if projects:
-        sel = st.selectbox("Select Project Sector", p_names, key="sidebar_project_select")
+        sel = st.selectbox("Select Workspace", p_names, key="sidebar_project_select")
         active_project = next(p for p in projects if p['name'] == sel)
         st.session_state.project_id = active_project['id']
     else:
         st.session_state.project_id = None
-        st.info("No sectors allocated.")
+        st.info("No workspaces allocated.")
     
     st.markdown("<br>", unsafe_allow_html=True)
     with st.popover("➕ NEW ALLOCATION", use_container_width=True):
-        new_p = st.text_input("New Sector Designation")
-        if st.button("INITIATE ALLOCATION") and new_p:
+        new_p = st.text_input("New Workspace Designation")
+        if st.button("INITIATE WORKSPACE") and new_p:
             db.table("projects").insert({
                 "name": new_p, 
                 "client_name": "Agency",
@@ -327,12 +327,26 @@ with st.sidebar:
             }).execute()
             st.rerun()
 
+    if st.session_state.project_id:
+        st.markdown("<br>", unsafe_allow_html=True)
+        with st.popover("🗑️ DELETE", use_container_width=True):
+            st.warning("This will permanently incinerate all intelligence records within this workspace.")
+            if st.button("CONFIRM DELETE"):
+                try:
+                    db.table("papers").delete().eq("project_id", st.session_state.project_id).execute()
+                    db.table("projects").delete().eq("id", st.session_state.project_id).execute()
+                    st.session_state.project_id = None
+                    st.success("Workspace Deleted.")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Deletion Failed: {e}")
+
     st.markdown("---")
     st.markdown("<p style='font-size: 0.6rem; color: #121212; text-align: center; opacity: 0.5;'>THE FACTORY v2.1.1<br>© 2026 ANTIGRAVITY AI</p>", unsafe_allow_html=True)
 
 # --- MAIN UI ---
 if st.session_state.project_id:
-    st.markdown(f'<p class="sector-badge">Active Sector: {active_project["name"]}</p>', unsafe_allow_html=True)
+    st.markdown(f'<p class="sector-badge">Active Workspace: {active_project["name"]}</p>', unsafe_allow_html=True)
     
     tabs = st.tabs([
         "🔍 Current Intelligence", 
@@ -482,4 +496,4 @@ if st.session_state.project_id:
                 st.markdown(ai_r.text)
 
 else:
-    st.info("Unlock a Research Sector via Sidebar to Activate Terminal.")
+    st.info("Unlock a Workspace via Sidebar to Activate Terminal.")
