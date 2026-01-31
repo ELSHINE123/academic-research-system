@@ -279,7 +279,11 @@ with st.sidebar:
     with st.popover("➕ NEW ALLOCATION", use_container_width=True):
         new_p = st.text_input("New Sector Designation")
         if st.button("INITIATE ALLOCATION") and new_p:
-            db.table("projects").insert({"name": new_p, "client_name": "Agency"}).execute()
+            db.table("projects").insert({
+                "name": new_p, 
+                "client_name": "Agency",
+                "owner_id": st.session_state.user.id
+            }).execute()
             st.rerun()
 
     st.markdown("---")
