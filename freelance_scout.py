@@ -40,47 +40,78 @@ st.markdown("""
         background: transparent !important;
         height: 0px !important;
         overflow: hidden !important;
+        display: none !important;
+    }
+    [data-testid="stAppViewContainer"] {
+        padding-top: 0px !important;
     }
     
-    /* Slim & Elegant Sidebar */
+    /* Force Sidebar Slim & Ink Contrast */
     [data-testid="stSidebar"] {
+        width: 250px !important;
         background: #ffffff !important;
         border-right: 1px solid rgba(18, 18, 18, 0.05);
-        box-shadow: 10px 0 30px rgba(0,0,0,0.02);
     }
     [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
-        padding-top: 2rem !important;
-        gap: 0.5rem !important;
+        padding: 1.5rem 1rem !important;
+        gap: 0.2rem !important;
     }
     
-    /* Vertical Navigation Control */
+    /* Navigation Visibility: INK ON IVORY */
+    div[data-testid="stRadio"] label p {
+        color: #121212 !important;
+        font-weight: 500 !important;
+        font-size: 0.8rem !important;
+        opacity: 1 !important;
+    }
+    
+    /* Removing Streamlit Radio Dots for Clean Menu */
+    div[data-testid="stRadio"] input {
+        display: none !important;
+    }
+    div[data-testid="stRadio"] div[role="radiogroup"] > label {
+        padding: 8px 12px !important;
+        margin-bottom: 4px !important;
+        border-radius: 4px !important;
+        transition: all 0.2s ease;
+        background: transparent !important;
+    }
+    div[data-testid="stRadio"] div[role="radiogroup"] > label:hover {
+        background: rgba(18, 18, 18, 0.03) !important;
+    }
+    div[data-testid="stRadio"] div[role="radiogroup"] [aria-checked="true"] {
+        background: rgba(197, 160, 33, 0.08) !important;
+        border-left: 3px solid #C5A021 !important;
+    }
+
+    /* Vertical Navigation Control Label */
     .nav-label {
         font-family: 'Inter', sans-serif;
         font-size: 0.65rem;
         text-transform: uppercase;
-        letter-spacing: 0.2em;
+        letter-spacing: 0.25em;
         color: #C5A021;
-        margin: 2rem 0 0.5rem 0;
-        padding-left: 0.5rem;
+        margin: 2rem 0 0.8rem 0;
+        font-weight: 700;
     }
 
-    /* Refined Button Scaling */
+    /* Shrunk Boutique Buttons */
     .stButton>button {
-        background: transparent !important;
-        color: #121212 !important;
-        font-size: 0.75rem !important;
-        border: 1px solid rgba(18, 18, 18, 0.1) !important;
-        border-radius: 2px !important;
-        padding: 0.4rem 0.8rem !important;
-        width: 100% !important;
-        text-align: left !important;
-        justify-content: flex-start !important;
-        transition: all 0.3s ease !important;
-    }
-    .stButton>button:hover {
         background: #121212 !important;
         color: #FAF9F6 !important;
-        border-color: #121212 !important;
+        font-size: 0.65rem !important;
+        font-weight: 700 !important;
+        border-radius: 2px !important;
+        padding: 0.3rem 0.6rem !important;
+        width: 100% !important;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        border: none !important;
+        margin-bottom: 0px !important;
+    }
+    .stButton>button:hover {
+        background: #C5A021 !important;
+        box-shadow: 0 5px 15px rgba(197, 160, 33, 0.2);
     }
     
     /* Hero Section: The Factory Identity */
@@ -302,11 +333,11 @@ with st.sidebar:
 
     st.markdown('<p class="nav-label">CONTROL DECK</p>', unsafe_allow_html=True)
     nav_options = [
-        "🔍 Current Intelligence", 
-        "📥 Resource Acquisitions", 
-        "📚 The Research Archive", 
-        "🧾 Intelligence Dossier", 
-        "✍️ Manuscripts & Drafts"
+        "Intelligence Scout", 
+        "Securing Resources", 
+        "Research Archive", 
+        "Handover Dossier", 
+        "Synthesis Drafts"
     ]
     selection = st.radio("Navigation", nav_options, label_visibility="collapsed")
 
@@ -318,7 +349,7 @@ if st.session_state.project_id:
     st.markdown(f'<div class="sector-badge">WORKSPACE ID: {active_project["id"][:8].upper()} — SEC. {active_project["name"].upper()}</div>', unsafe_allow_html=True)
     
     # 🔍 CURRENT INTELLIGENCE (SCOUT)
-    if selection == "🔍 Current Intelligence":
+    if selection == "Intelligence Scout":
         st.markdown('<div class="factory-card"><h3>Global Intelligence Scout</h3><p>Query Global Graphs and Web Frontiers.</p></div>', unsafe_allow_html=True)
         q = st.text_input("Intelligence Objective")
         col1, col2 = st.columns(2)
@@ -362,7 +393,7 @@ if st.session_state.project_id:
                 status.update(label="Loop Complete", state="complete")
 
     # 📥 RESOURCE ACQUISITIONS (INGEST)
-    elif selection == "📥 Resource Acquisitions":
+    elif selection == "Securing Resources":
         st.markdown('<div class="factory-card"><h3>Resource Acquisition Station</h3><p>Secure PDFs or ingest URLs with refined extraction.</p></div>', unsafe_allow_html=True)
         mode = st.radio("Channel", ["PDF", "URL"], horizontal=True)
         if mode == "PDF":
@@ -389,7 +420,7 @@ if st.session_state.project_id:
                     st.success("Web Intelligence Captured!")
 
     # 📚 LIBRARY
-    elif selection == "📚 The Research Archive":
+    elif selection == "Research Archive":
         paps = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
         if paps:
             df = pd.DataFrame(paps)
@@ -419,7 +450,7 @@ if st.session_state.project_id:
                         st.error("Paper not found in Graph.")
 
     # 🧾 INTELLIGENCE DOSSIER (EXPORT)
-    elif selection == "🧾 Intelligence Dossier":
+    elif selection == "Handover Dossier":
         st.markdown('<div class="factory-card"><h3>Intelligence Dossier Export</h3><p>Prepare the final handover documents for the sector.</p></div>', unsafe_allow_html=True)
         p_exp = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
         if p_exp:
@@ -445,7 +476,7 @@ if st.session_state.project_id:
                     else: st.warning("Notion credentials missing in secrets.")
 
     # ✍️ MANUSCRIPTS & DRAFTS (SYNTHESIS)
-    elif selection == "✍️ Manuscripts & Drafts":
+    elif selection == "Synthesis Drafts":
         st.markdown('<div class="factory-card"><h3>Editorial Synthesis Engine</h3><p>Grounded strictly in the curated project archives.</p></div>', unsafe_allow_html=True)
         papers_rag = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
         kb = "\n".join([f"KEY: ({p['authors'][0] if p['authors'] else 'n.a'}, {p['year']}) | CONTENT: {p.get('abstract','')}" for p in papers_rag])
