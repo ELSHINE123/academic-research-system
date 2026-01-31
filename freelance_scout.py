@@ -14,9 +14,14 @@ from streamlit_extras.metric_cards import style_metric_cards
 from streamlit_extras.add_vertical_space import add_vertical_space
 import logfire
 
-# --- OBSERERVABILITY ---
-logfire.configure()
-logfire.instrument_requests()
+# --- OBSERVABILITY ---
+try:
+    logfire_token = st.secrets.get("logfire", {}).get("token")
+    if logfire_token:
+        logfire.configure(token=logfire_token)
+        logfire.instrument_requests()
+except Exception:
+    pass
 from duckduckgo_search import DDGS
 import openpyxl
 from io import BytesIO
