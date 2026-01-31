@@ -1,0 +1,12 @@
+streamlit
+supabase
+google-generativeai
+pandas
+requests
+pypdf
+openpyxl
+duckduckgo-search
+pydantic
+logfire
+streamlit-extras
+firecrawl-py

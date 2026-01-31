@@ -1,0 +1,10 @@
+.streamlit/secrets.toml
+__pycache__/
+*.pyc
+venv/
+.env
+.logfire/
+matrix.xlsx
+bibliography.xml
+research_matrix.csv
+assets/logo.png
