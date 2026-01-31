@@ -151,7 +151,7 @@ st.markdown("""
     .stTextInput input {
         background: transparent !important;
         border: none !important;
-        border-bottom: 1px solid rgba(18, 18, 18, 0.2) !important;
+        border-bottom: 1px solid rgba(18, 18, 18, 0.5) !important;
         border-radius: 0px !important;
         color: #121212 !important;
         font-size: 1.2rem !important;
@@ -253,7 +253,7 @@ if st.session_state.user:
 
 # Main Cinematic Header
 st.markdown('<h1 class="main-header">THE FACTORY</h1>', unsafe_allow_html=True)
-st.markdown('<p class="sub-header">PRECISION RESEARCH ENGINE V2.0</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-header">PRECISION RESEARCH ENGINE</p>', unsafe_allow_html=True)
 
 # Auth Gate Logic with Factory Card
 def auth_gate():
@@ -342,7 +342,7 @@ with st.sidebar:
                     st.error(f"Deletion Failed: {e}")
 
     st.markdown("---")
-    st.markdown("<p style='font-size: 0.6rem; color: #121212; text-align: center; opacity: 0.5;'>THE FACTORY v2.1.1<br>© 2026 ANTIGRAVITY AI</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 0.6rem; color: #121212; text-align: center; opacity: 0.5;'>THE FACTORY<br>© 2026 ANTIGRAVITY AI</p>", unsafe_allow_html=True)
 
 # --- MAIN UI ---
 if st.session_state.project_id:
