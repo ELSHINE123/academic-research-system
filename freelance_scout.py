@@ -147,19 +147,30 @@ st.markdown("""
         border-bottom: 2px solid #C5A021 !important;
     }
 
-    /* Inputs */
-    .stTextInput input {
-        background: transparent !important;
-        border: none !important;
-        border-bottom: 1px solid rgba(18, 18, 18, 0.5) !important;
-        border-radius: 0px !important;
+    /* Inputs & Labels */
+    [data-testid="stWidgetLabel"] p {
         color: #121212 !important;
-        font-size: 1.2rem !important;
-        padding: 10px 0 !important;
+        font-weight: 600 !important;
+    }
+    .stTextInput input {
+        background: #ffffff !important;
+        border: 1px solid rgba(18, 18, 18, 0.2) !important;
+        border-radius: 4px !important;
+        color: #121212 !important;
+        font-size: 1rem !important;
+        padding: 12px !important;
     }
     .stTextInput input:focus {
-        border-bottom: 1px solid #C5A021 !important;
-        box-shadow: none !important;
+        border: 1px solid #C5A021 !important;
+        box-shadow: 0 0 0 2px rgba(197, 160, 33, 0.1) !important;
+    }
+    
+    /* Radio Buttons Visibility */
+    [data-testid="stRadio"] label p {
+        color: #121212 !important;
+    }
+    div[role="radiogroup"] {
+        gap: 1.5rem !important;
     }
 
     /* Metrics & Stats */
