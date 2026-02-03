@@ -13,6 +13,10 @@ from streamlit_extras.add_vertical_space import add_vertical_space
 from duckduckgo_search import DDGS
 from firecrawl import FirecrawlApp
 import xml.etree.ElementTree as ET
+from streamlit_agraph import agraph, Node, Edge, Config
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill
+from openpyxl.utils import get_column_letter
 
 # --- CONFIGURATION & MODELS ---
 st.set_page_config(
@@ -21,6 +25,57 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+def generate_excel_matrix(papers):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Research Matrix"
+    
+    # Headers
+    headers = ["Title", "Authors", "Year", "Status", "Impact Score", "Source", "Abstract/Summary"]
+    ws.append(headers)
+    
+    # Styling Headers
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="121212", end_color="121212", fill_type="solid")
+    
+    for cell in ws[1]:
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        
+    # Data Rows
+    for p in papers:
+        authors = ", ".join(p.get('authors', [])) if isinstance(p.get('authors'), list) else "Anon"
+        row = [
+            p.get('title', 'Untitled'),
+            authors,
+            p.get('year', 'n.d.'),
+            p.get('reading_status', 'Unread'),
+            p.get('impact_score', 0.0),
+            p.get('source_type', 'Unknown'),
+            p.get('abstract', '')[:1000] # Truncate massive abstracts for Excel readability
+        ]
+        ws.append(row)
+        
+    # Auto-adjust column widths
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter # Get the column name
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        # Cap width
+        if adjusted_width > 50: adjusted_width = 50
+        ws.column_dimensions[column].width = adjusted_width
+        
+    buf = BytesIO()
+    wb.save(buf)
+    return buf.getvalue()
 
 # Custom Premium CSS: THE FACTORY 2.0
 st.markdown("""
@@ -163,6 +218,38 @@ st.markdown("""
         border: 1px solid rgba(18, 18, 18, 0.2) !important;
         padding: 0.8rem !important;
     }
+
+    /* Research Cockpit Specifics */
+    .intelligence-pane {
+        background: #ffffff;
+        border-right: 1px solid rgba(18, 18, 18, 0.1);
+        padding-right: 1.5rem;
+    }
+    .synthesis-pane {
+        background: #F4F4F2;
+        padding-left: 1.5rem;
+        height: 100vh;
+        overflow-y: auto;
+    }
+    .feed-item {
+        background: #ffffff;
+        border: 1px solid rgba(18, 18, 18, 0.05);
+        padding: 1rem;
+        margin-bottom: 0.8rem;
+        border-radius: 4px;
+        transition: transform 0.2s ease;
+    }
+    .feed-item:hover {
+        border-color: #C5A021;
+        transform: translateX(3px);
+    }
+    .unified-bar {
+        background: #121212;
+        color: #FAF9F6;
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 2rem;
+    }
     
     /* Scrollbar Ivory & Gold */
     ::-webkit-scrollbar { width: 5px; }
@@ -181,6 +268,14 @@ class Metadata(BaseModel):
     authors: List[str] = Field(description="List of all contributing authors.")
     year: Optional[int] = Field(description="Year of publication.")
     abstract: str = Field(description="Concise abstract or summary.")
+
+class ScrapedContent(BaseModel):
+    title: str = Field(description="The clear title of the article or paper.")
+    author: str = Field(description="Name of the primary author or organization.")
+    publication_date: str = Field(description="Date of publication (YYYY-MM-DD) or 'n.d.'")
+    key_findings: List[str] = Field(description="List of 3-5 main takeaways or results.")
+    methodology: str = Field(description="Brief description of how the information was gathered (e.g., 'Opinion', 'Case Study', 'Review').")
+    summary: str = Field(description="A coherent paragraph summarizing the full content.")
 
 class SynthesisResponse(BaseModel):
     answer: str
@@ -331,161 +426,427 @@ with st.sidebar:
                 except Exception as e:
                     st.error(f"Deletion Failed: {e}")
 
-    st.markdown('<p class="nav-label">CONTROL DECK</p>', unsafe_allow_html=True)
-    nav_options = [
-        "Intelligence Scout", 
-        "Securing Resources", 
-        "Research Archive", 
-        "Handover Dossier", 
-        "Synthesis Drafts"
-    ]
-    selection = st.radio("Navigation", nav_options, label_visibility="collapsed")
-
+    st.markdown('<p class="nav-label">TERMINAL STATUS</p>', unsafe_allow_html=True)
+    st.success("COCKPIT ACTIVE")
     st.markdown("---")
     st.markdown("<p style='font-size: 0.6rem; color: #121212; text-align: center; opacity: 0.5;'>THE FACTORY<br>© 2026 ANTIGRAVITY AI</p>", unsafe_allow_html=True)
 
 # --- MAIN UI ---
 if st.session_state.project_id:
-    st.markdown(f'<div class="sector-badge">WORKSPACE ID: {active_project["id"][:8].upper()} — SEC. {active_project["name"].upper()}</div>', unsafe_allow_html=True)
+    # Top Sector Status
+    st.markdown(f'<div class="sector-badge">WORKSPACE: {active_project["name"].upper()} | ID: {active_project["id"][:8].upper()}</div>', unsafe_allow_html=True)
     
-    # 🔍 CURRENT INTELLIGENCE (SCOUT)
-    if selection == "Intelligence Scout":
-        st.markdown('<div class="factory-card"><h3>Global Intelligence Scout</h3><p>Query Global Graphs and Web Frontiers.</p></div>', unsafe_allow_html=True)
-        q = st.text_input("Intelligence Objective")
-        col1, col2 = st.columns(2)
-        grey = col1.toggle("Grey Literature Search")
-        pilot = col2.toggle("Auto-Pilot Loop")
+    # Split Screen: THE RESEARCH COCKPIT
+    intel_col, synth_col = st.columns([1.2, 1], gap="large")
+
+    # --- LEFT PANE: INTELLIGENCE FEED ---
+    with intel_col:
+        st.markdown("### 🛰️ Intelligence Feed")
         
-        if st.button("🚀 Execute Search", use_container_width=True):
-            with st.status("Executing Intelligence Loop...") as status:
-                st.markdown("#### 🧠 Internal Memory Scan")
-                loc = db.table("papers").select("*").ilike("title", f"%{q}%").execute().data or []
-                for p in loc:
-                    st.write(f"💼 Found in Archives: **{p['title']}**")
-                
-                def perform_search(term):
-                    # Semantic Scholar
-                    ss = requests.get(f"https://api.semanticscholar.org/graph/v1/paper/search?query={term}&limit=10&fields=title,authors,year,abstract,url").json().get("data", [])
-                    # Grey Lit
-                    if grey:
-                        with DDGS() as ddgs:
-                            for dr in ddgs.text(f"{term} filetype:pdf", max_results=5):
-                                ss.append({"title": dr['title'], "url": dr['href'], "abstract": dr['body'], "authors": [{"name": "Web Source"}], "year": datetime.now().year, "source_type": "grey"})
-                    return ss
+        # Unified Command Bar
+        with st.container():
+            st.markdown('<div class="unified-bar">', unsafe_allow_html=True)
+            
+            mode = st.radio("Mission Mode", ["Search", "Ingest PDF", "Scrape URL"], horizontal=True)
+            
+import tempfile
+import pathlib
 
-                results = perform_search(q)
-                if pilot and len(results) < 3:
-                    st.info("Low results. Engaging Auto-Pilot Keyword Refinement...")
-                    refine = ai.generate_content(f"Suggest 3 better academic search strings for '{q}'. Return as comma list.").text
-                    results += perform_search(refine.split(',')[0])
+# ... (rest of imports)
 
-                st.markdown("#### 🌐 Global Intelligence")
-                for p in results:
-                    with st.container():
-                        st.markdown(f"<div class='factory-card' style='padding:1.5rem; margin-bottom: 0.5rem;'><b>{p['title']}</b> ({p.get('year','n.a')})</div>", unsafe_allow_html=True)
-                        if st.button("Archive Discovery", key=f"s_{p['title']}"):
+# ... inside Main UI ...
+
+            if mode == "Ingest PDF":
+                up = st.file_uploader("Source PDF", type="pdf", label_visibility="collapsed")
+                if st.button("EXECUTE INGEST", use_container_width=True) and up:
+                    with st.spinner("Uploading & Analyzing (Vision Engine)..."):
+                        # 1. Save to Temp File
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                            tmp.write(up.getvalue())
+                            tmp_path = tmp.name
+
+                        try:
+                            # 2. Upload to Gemini
+                            pdf_file = genai.upload_file(tmp_path, mime_type="application/pdf")
+                            
+                            # 3. Two-Pass Extraction (Vision)
+                            # Pass A: Strict Metadata
+                            meta_res = ai.generate_content(
+                                [pdf_file, "Extract strict academic metadata."], 
+                                generation_config={"response_mime_type": "application/json", "response_schema": ScrapedContent}
+                            ).text
+                            meta = ScrapedContent.model_validate_json(meta_res)
+                            
+                            # Pass B: Full Content Ingest
+                            content_res = ai.generate_content([pdf_file, "Transcribe this full document into clean Markdown. Describe all charts/images."]).text
+
+                            # 4. Archive
+                            rich_abstract = f"""{meta.summary}
+                            
+                            KEY FINDINGS:
+                            {chr(10).join(['- ' + k for k in meta.key_findings])}
+                            
+                            METHODOLOGY: {meta.methodology}
+                            """
+
                             db.table("papers").insert({
                                 "project_id": st.session_state.project_id,
-                                "title": p['title'], "authors": [a.get('name','Anon') for a in p.get('authors',[])],
-                                "year": p.get('year'), "abstract": p.get('abstract'), "url": p.get('url'), "source_type": "scout"
+                                "title": meta.title,
+                                "authors": [meta.author], # Schema expects list
+                                "year": int(meta.publication_date[:4]) if meta.publication_date[0].isdigit() else datetime.now().year,
+                                "abstract": rich_abstract,
+                                "content_body": content_res, # New Full Text Column
+                                "source_type": "pdf"
                             }).execute()
-                            st.toast("Saved!")
-                status.update(label="Loop Complete", state="complete")
+                            st.toast("PDF Digitized & Archived (Vision-Enhanced)!")
+                            
+                        except Exception as e:
+                            st.error(f"Ingest Error: {e}")
+                        finally:
+                            pathlib.Path(tmp_path).unlink(missing_ok=True)
+            else:
+                cmd = st.text_input("UNIFIED COMMAND", key="unified_cmd", placeholder="Enter keywords or URL...", label_visibility="collapsed")
+                c1, c2 = st.columns(2)
+                grey_lit = c1.toggle("Grey Lit", help="Search beyond academic journals")
+                auto_pilot = c2.toggle("Auto-Pilot", help="Autonomous keyword refinement")
+                
+                # Initialize Session State for Auto-Pilot
+                if "pilot_proposal" not in st.session_state: st.session_state.pilot_proposal = None
 
-    # 📥 RESOURCE ACQUISITIONS (INGEST)
-    elif selection == "Securing Resources":
-        st.markdown('<div class="factory-card"><h3>Resource Acquisition Station</h3><p>Secure PDFs or ingest URLs with refined extraction.</p></div>', unsafe_allow_html=True)
-        mode = st.radio("Channel", ["PDF", "URL"], horizontal=True)
-        if mode == "PDF":
-            up = st.file_uploader("Source PDF", type="pdf")
-            if up:
-                with st.spinner("Extracting..."):
-                    tx = "".join([p.extract_text() for p in PdfReader(up).pages[:5]])
-                    meta = Metadata.model_validate_json(ai.generate_content(f"Extract JSON from: {tx[:4000]}", generation_config={"response_mime_type": "application/json"}).text)
-                    st.json(meta.model_dump())
-                    if st.button("Confirm Archival"):
-                        db.table("papers").insert({"project_id": st.session_state.project_id, **meta.model_dump(), "source_type": "pdf"}).execute()
-                        st.success("Archived!")
-        elif mode == "URL" and firecrawl:
-            u = st.text_input("Source URL")
-            if st.button("Scrape Sector"):
-                with st.spinner("Firecrawl Engine Active..."):
-                    sc = firecrawl.scrape_url(u, params={'formats': ['markdown']})
-                    md = sc.get('markdown','')
-                    ai_res = json.loads(ai.generate_content(f"Summarize and Extract: {md[:5000]}").text.replace("```json","").replace("```","").strip())
-                    db.table("papers").insert({
-                        "project_id": st.session_state.project_id, "title": ai_res.get('title','Web Source'),
-                        "abstract": md[:2000], "url": u, "source_type": "web"
-                    }).execute()
-                    st.success("Web Intelligence Captured!")
+                if st.button("EXECUTE MISSION", use_container_width=True):
+                    try:
+                        if mode == "Search" and cmd:
+                            with st.status("Executing Scout...") as status:
+                                def perform_search(term):
+                                    try:
+                                        ss = requests.get(f"https://api.semanticscholar.org/graph/v1/paper/search?query={term}&limit=10&fields=title,authors,year,abstract,url", timeout=10).json().get("data", [])
+                                    except Exception:
+                                        ss = []
+                                    
+                                    if grey_lit:
+                                        try:
+                                            with DDGS() as ddgs:
+                                                for dr in ddgs.text(f"{term} filetype:pdf", max_results=5):
+                                                    ss.append({"title": dr['title'], "url": dr['href'], "abstract": dr['body'], "authors": [{"name": "Web Source"}], "year": datetime.now().year, "source_type": "grey"})
+                                        except Exception as e:
+                                            st.write(f"Grey Lit Warning: {e}")
+                                    return ss
+                                
+                                results = perform_search(cmd)
+                                st.session_state.current_results = results
+                                
+                                # Auto-Pilot Trigger
+                                if auto_pilot and len(results) < 10:
+                                    with st.spinner("Auto-Pilot: Analyzing Research Void..."):
+                                        strategy_prompt = f"""
+                                        The user searched for '{cmd}' but found few results. 
+                                        Act as a Senior Research Librarian. 
+                                        1. Analyze WHY (too specific? wrong terminology?).
+                                        2. Suggest 3 alternative academic search queries (broadening, synonyms, or methodology-specific).
+                                        3. Provide a brief rationale.
+                                        Return JSON: {{ "analysis": "...", "queries": ["q1", "q2", "q3"] }}
+                                        """
+                                        try:
+                                            strategy = json.loads(ai.generate_content(strategy_prompt, generation_config={"response_mime_type": "application/json"}).text)
+                                            st.session_state.pilot_proposal = strategy
+                                        except Exception as e:
+                                            st.warning(f"Auto-Pilot Glitch: {e}")
+                                else:
+                                    st.toast("Scout Mission Complete.")
+                                status.update(label="Scout Complete", state="complete")
 
-    # 📚 LIBRARY
-    elif selection == "Research Archive":
-        paps = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
-        if paps:
-            df = pd.DataFrame(paps)
-            st.data_editor(df[['title', 'authors', 'year', 'source_type']], use_container_width=True)
-            
-            st.markdown("---")
-            st.markdown("#### 💎 Advanced Snowball Mining")
-            target = st.selectbox("Select Seed Paper for Citation Mining", df['title'].tolist())
-            if st.button("⛏️ Execute Recursive Mining"):
-                with st.spinner("Mining Research Graph..."):
-                    ss_search = requests.get(f"https://api.semanticscholar.org/graph/v1/paper/search?query={target}&limit=1&fields=paperId").json()
-                    if ss_search.get("data"):
-                        pid = ss_search["data"][0]["paperId"]
-                        ref_url = f"https://api.semanticscholar.org/graph/v1/paper/{pid}/references?limit=10&fields=title,authors,year,abstract,url"
-                        refs = requests.get(ref_url).json().get("data", [])
-                        for r_item in refs:
-                            r = r_item.get("citedPaper")
-                            if r and r.get("title"):
-                                db.table("papers").insert({
-                                    "project_id": st.session_state.project_id,
-                                    "title": r['title'], "authors": [a.get('name', 'Unknown') for a in r.get('authors', [])],
-                                    "year": r.get('year'), "abstract": r.get('abstract'), "url": r.get('url'),
-                                    "source_type": "snowball-mining"
-                                }).execute()
-                        st.success(f"Mined {len(refs)} references! Library updated.")
-                    else:
-                        st.error("Paper not found in Graph.")
+                        elif mode == "Scrape URL" and cmd and firecrawl:
+                             with st.spinner("Scraping Sector..."):
+                                try:
+                                    sc = firecrawl.scrape_url(cmd, params={'formats': ['markdown']})
+                                    md = sc.get('markdown','')
+                                    
+                                    if not md: raise ValueError("No markdown content returned.")
 
-    # 🧾 INTELLIGENCE DOSSIER (EXPORT)
-    elif selection == "Handover Dossier":
-        st.markdown('<div class="factory-card"><h3>Intelligence Dossier Export</h3><p>Prepare the final handover documents for the sector.</p></div>', unsafe_allow_html=True)
-        p_exp = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
-        if p_exp:
-            exp_col1, exp_col2, exp_col3 = st.columns(3)
-            with exp_col1:
-                st.download_button("Word Bibliography (XML)", generate_word_xml_bib(p_exp), "bib.xml", use_container_width=True)
-            with exp_col2:
-                buf = BytesIO()
-                pd.DataFrame(p_exp).to_excel(buf, index=False)
-                st.download_button("Excel Research Matrix", buf.getvalue(), "matrix.xlsx", use_container_width=True)
-            with exp_col3:
+                                    # Validated Extraction
+                                    extract_prompt = f"Analyze this web content and extract strict metadata: {md[:8000]}"
+                                    ai_res_json = ai.generate_content(
+                                        extract_prompt, 
+                                        generation_config={"response_mime_type": "application/json", "response_schema": ScrapedContent}
+                                    ).text
+                                    validated_data = ScrapedContent.model_validate_json(ai_res_json)
+                                    
+                                    # formatted abstract with deep metadata
+                                    rich_abstract = f"""{validated_data.summary}
+                                    
+                                    KEY FINDINGS:
+                                    {chr(10).join(['- ' + k for k in validated_data.key_findings])}
+                                    
+                                    METHODOLOGY: {validated_data.methodology}
+                                    """
+                                    
+                                    db.table("papers").insert({
+                                        "project_id": st.session_state.project_id, 
+                                        "title": validated_data.title,
+                                        "authors": [validated_data.author],
+                                        "year": int(validated_data.publication_date[:4]) if validated_data.publication_date[0].isdigit() else datetime.now().year,
+                                        "abstract": rich_abstract, 
+                                        "url": cmd, 
+                                        "source_type": "web"
+                                    }).execute()
+                                    st.toast("Web Intelligence Captured & Validated!")
+                                except Exception as e:
+                                    st.error(f"Scrape Mission Failed: {e}")
+                    except Exception as critical_e:
+                        st.error(f"Terminal Error: {critical_e}")
+
+                # Auto-Pilot Proposal UI
+                if st.session_state.pilot_proposal:
+                    with st.container():
+                        st.markdown(f"""
+                        <div style="background: #FFFBF0; border: 1px solid #C5A021; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
+                            <h4 style="color:#C5A021; margin:0;">✈️ Auto-Pilot Proposal</h4>
+                            <p style="font-size:0.8rem;"><b>Analysis:</b> {st.session_state.pilot_proposal['analysis']}</p>
+                            <p style="font-size:0.8rem; font-weight:bold;">Proposed Trajectories:</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        cols = st.columns(3)
+                        for i, q in enumerate(st.session_state.pilot_proposal['queries']):
+                            if cols[i].button(q, key=f"pilot_{i}", use_container_width=True):
+                                new_res = perform_search(q)
+                                st.session_state.current_results += new_res
+                                st.session_state.pilot_proposal = None # Clear after execution
+                                st.rerun()
+
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        # Feed Stream
+        feed_tabs = st.tabs(["Review Queue", "Research Archive", "Network Graph", "Handover"])
+        
+        with feed_tabs[0]: # Review Queue (Current Results)
+            if "current_results" in st.session_state:
+                for p in st.session_state.current_results:
+                    with st.container():
+                        st.markdown(f"""
+                        <div class="feed-item">
+                            <p style="font-size:0.7rem; color:#C5A021; margin:0;">{p.get('source_type', 'ACADEMIC').upper()}</p>
+                            <h4 style="margin:0.2rem 0;">{p['title']}</h4>
+                            <p style="font-size:0.8rem; opacity:0.7;">{p.get('year', 'N/A')} | {', '.join([a.get('name', '') for a in p.get('authors', [])]) if isinstance(p.get('authors'), list) else 'Anon'}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        if st.button("Save to Library", key=f"save_{p['title']}"):
+                            db.table("papers").insert({
+                                "project_id": st.session_state.project_id,
+                                "title": p['title'], "authors": [a.get('name','Anon') for a in p.get('authors',[])] if isinstance(p.get('authors'), list) else ['Anon'],
+                                "year": p.get('year'), "abstract": p.get('abstract'), "url": p.get('url'), "source_type": p.get('source_type', 'scout')
+                            }).execute()
+                            st.toast("Archived!")
+            else:
+                st.info("Feed is silent. Initiate a mission above.")
+
+        with feed_tabs[1]: # Research Archive (Citation Matrix)
+            paps = db.table("papers").select("*").eq("project_id", st.session_state.project_id).order("created_at", desc=True).execute().data or []
+            if paps:
+                df = pd.DataFrame(paps)
+                
+                # Ensure columns exist for the editor
+                if 'reading_status' not in df.columns: df['reading_status'] = 'Unread'
+                if 'tags' not in df.columns: df['tags'] = [[] for _ in range(len(df))]
+                if 'citation_count' not in df.columns: df['citation_count'] = 0
+
+                st.markdown("### 📚 Citation Matrix")
+                
+                edited_df = st.data_editor(
+                    df,
+                    column_config={
+                        "title": st.column_config.TextColumn("Title", disabled=True, width="medium"),
+                        "reading_status": st.column_config.SelectboxColumn(
+                            "Status",
+                            options=["Unread", "Reading", "Synthesized"],
+                            required=True
+                        ),
+                        "tags": st.column_config.ListColumn("Tags"),
+                        "citation_count": st.column_config.NumberColumn("Citations", disabled=True),
+                        "year": st.column_config.NumberColumn("Year", disabled=True),
+                        "source_type": st.column_config.TextColumn("Source", disabled=True)
+                    },
+                    column_order=["title", "reading_status", "tags", "year", "citation_count", "source_type"],
+                    hide_index=True,
+                    use_container_width=True,
+                    key="citation_matrix"
+                )
+
+                # Commit Changes
+                if st.session_state.citation_matrix.get("edited_rows"):
+                    changes = st.session_state.citation_matrix["edited_rows"]
+                    with st.spinner("Syncing Matrix..."):
+                        for idx, diff in changes.items():
+                            paper_id = df.iloc[idx]["id"]
+                            db.table("papers").update(diff).eq("id", paper_id).execute()
+                    st.toast("Matrix Synced.")
+                    st.rerun()
+
+                st.markdown("---")
+                
+                # Contextual Actions for Selected Paper (Mock selection via selectbox for now as data_editor selection is beta)
+                sel_paper = st.selectbox("Select Paper for Deep Actions", df['title'].tolist())
+                sel_p_data = df[df['title'] == sel_paper].iloc[0]
+
+                c1, c2 = st.columns(2)
+                with c1:
+                    if st.button("⛏️ Snowball Mine", key="mine_btn"):
+                         with st.spinner("Mining Research Graph..."):
+                            ss_search = requests.get(f"https://api.semanticscholar.org/graph/v1/paper/search?query={sel_p_data['title']}&limit=1&fields=paperId").json()
+                            if ss_search.get("data"):
+                                pid = ss_search["data"][0]["paperId"]
+                                ref_url = f"https://api.semanticscholar.org/graph/v1/paper/{pid}/references?limit=10&fields=title,authors,year,abstract,url,citationCount"
+                                refs = requests.get(ref_url).json().get("data", [])
+                                count = 0
+                                for r_item in refs:
+                                    r = r_item.get("citedPaper")
+                                    if r and r.get("title"):
+                                        # Check duplicate
+                                        exists = db.table("papers").select("id").eq("title", r['title']).eq("project_id", st.session_state.project_id).execute().data
+                                        if not exists:
+                                            db.table("papers").insert({
+                                                "project_id": st.session_state.project_id,
+                                                "title": r['title'], "authors": [a.get('name', 'Unknown') for a in r.get('authors', [])],
+                                                "year": r.get('year'), "abstract": r.get('abstract'), "url": r.get('url'),
+                                                "citation_count": r.get('citationCount', 0),
+                                                "source_type": "snowball-mining"
+                                            }).execute()
+                                            count += 1
+                                st.success(f"Mined {count} new references!")
+                                st.rerun()
+                            else: st.error("Paper not found in Graph.")
+                with c2:
+                    st.write(f"**Abstract:** {sel_p_data.get('abstract', '')[:300]}...")
+
+            else:
+                st.info("Archive empty.")
+
+        with feed_tabs[2]: # Network Graph
+            paps = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
+            if paps:
+                nodes = []
+                edges = []
+                # Create Nodes
+                for p in paps:
+                    # Size based on citation count (logarithmic scale approx)
+                    size = 15 + (p.get('citation_count', 0) / 10) 
+                    nodes.append(Node(id=p['id'], label=p['title'][:20]+"...", size=min(size, 40), shape="dot", color="#C5A021"))
+                
+                # Create Edges (Shared Authors)
+                for i, p1 in enumerate(paps):
+                    for p2 in paps[i+1:]:
+                        # Find intersection of authors
+                        authors1 = set(p1.get('authors', []))
+                        authors2 = set(p2.get('authors', []))
+                        shared = authors1.intersection(authors2)
+                        if shared:
+                            edges.append(Edge(source=p1['id'], target=p2['id'], label=list(shared)[0], color="#121212"))
+
+                config = Config(width="100%", height=500, directed=False, physics=True, hierarchical=False)
+                return_value = agraph(nodes=nodes, edges=edges, config=config)
+            else:
+                st.info("Add papers to visualize the network.")
+
+        with feed_tabs[3]: # Handover Dossier
+            p_exp = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
+            if p_exp:
+                st.download_button("Word Bib (XML)", generate_word_xml_bib(p_exp), "bib.xml", use_container_width=True)
+                
+                # Excel Export using new function
+                excel_data = generate_excel_matrix(p_exp)
+                st.download_button("Excel Research Matrix (Pro)", excel_data, "matrix.xlsx", use_container_width=True)
+                
                 if st.button("🚀 Sync to Notion", use_container_width=True):
                     token = st.secrets["notion"].get("api_token")
                     db_id = st.secrets["notion"].get("database_id")
                     if token and db_id:
                         with st.status("Syncing to Notion Workspace...") as status:
                             headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json", "Notion-Version": "2022-06-28"}
-                            for p in p_exp:
-                                data = {"parent": {"database_id": db_id}, "properties": {"Title": {"title": [{"text": {"content": p['title']}}]}, "Year": {"number": p['year']} if p['year'] else None, "Authors": {"rich_text": [{"text": {"content": ", ".join(p['authors'])}}]}, "URL": {"url": p['url']} if p['url'] else None}}
-                                data["properties"] = {k: v for k, v in data["properties"].items() if v is not None}
-                                requests.post("https://api.notion.com/v1/pages", headers=headers, json=data)
-                            status.update(label="Notion Sync Successful!", state="complete")
+                            progress_bar = st.progress(0)
+                            success_count = 0
+                            error_count = 0
+                            
+                            for i, p in enumerate(p_exp):
+                                try:
+                                    data = {
+                                        "parent": {"database_id": db_id}, 
+                                        "properties": {
+                                            "Title": {"title": [{"text": {"content": p['title'][:2000]}}]}, # Limit title length
+                                            "Year": {"number": p['year']} if p['year'] else None,
+                                            "Authors": {"rich_text": [{"text": {"content": ", ".join(p.get('authors', []))[:2000]}}]},
+                                            "URL": {"url": p['url']} if p['url'] else None,
+                                            "Status": {"select": {"name": p.get('reading_status', 'Unread')}} # Sync Status
+                                        }
+                                    }
+                                    # Clean None values
+                                    data["properties"] = {k: v for k, v in data["properties"].items() if v is not None}
+                                    
+                                    res = requests.post("https://api.notion.com/v1/pages", headers=headers, json=data)
+                                    res.raise_for_status()
+                                    success_count += 1
+                                except Exception as e:
+                                    error_count += 1
+                                    st.write(f"⚠️ Failed to sync '{p['title'][:20]}...': {e}")
+                                
+                                progress_bar.progress((i + 1) / len(p_exp))
+                            
+                            status.update(label=f"Notion Sync Complete: {success_count} Synced, {error_count} Failed", state="complete")
+                            st.toast(f"Sync Complete: {success_count} Success, {error_count} Failures")
                     else: st.warning("Notion credentials missing in secrets.")
 
-    # ✍️ MANUSCRIPTS & DRAFTS (SYNTHESIS)
-    elif selection == "Synthesis Drafts":
-        st.markdown('<div class="factory-card"><h3>Editorial Synthesis Engine</h3><p>Grounded strictly in the curated project archives.</p></div>', unsafe_allow_html=True)
+    # --- RIGHT PANE: SYNTHESIS WORKSPACE ---
+    with synth_col:
+        st.markdown("### ✍️ Synthesis Workspace")
+        
+        # Pull context from library
         papers_rag = db.table("papers").select("*").eq("project_id", st.session_state.project_id).execute().data or []
-        kb = "\n".join([f"KEY: ({p['authors'][0] if p['authors'] else 'n.a'}, {p['year']}) | CONTENT: {p.get('abstract','')}" for p in papers_rag])
-        if pr := st.chat_input("Synthesize intelligence..."):
-            with st.chat_message("user"): st.write(pr)
+        
+        # Construct High-Fidelity Context
+        kb_context = ""
+        for p in papers_rag:
+            auth_str = p['authors'][0] if p.get('authors') and len(p['authors']) > 0 else 'Anon'
+            year_str = str(p.get('year', 'n.d.'))
+            # Fallback to abstract if content_body is empty
+            content = p.get('content_body', '') 
+            if not content: content = p.get('abstract', '')
+            
+            kb_context += f"""
+            ---
+            REF_CODE: [{auth_str}, {year_str}]
+            TITLE: {p['title']}
+            CONTENT: {content[:3000]} 
+            ---
+            """
+        
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
+            
+        for msg in st.session_state.messages:
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+                
+        if prompt := st.chat_input("Synthesize intelligence or draft report..."):
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.markdown(prompt)
+                
             with st.chat_message("assistant"):
-                sys_p = f"Professional Researcher. Use ONLY Context: {kb}"
-                ai_r = ai.generate_content(f"{sys_p}\nPROMPT: {pr}")
-                st.markdown(ai_r.text)
+                with st.spinner("Synthesizing (Strict Grounding)..."):
+                    system_prompt = """
+                    You are an Elite Research Assistant. Your goal is to synthesize answers using ONLY the provided Context Library.
+                    
+                    RULES:
+                    1. CITATIONS MANDATORY: Every single claim or fact must be immediately followed by its source in [Author, Year] format.
+                    2. NO HALLUCINATION: If the answer is not in the Context Library, state clearly: "This information is not present in the current archives."
+                    3. ACADEMIC TONE: Maintain a professional, objective, and analytical tone.
+                    4. SYNTHESIS: Do not just list summaries. Connect the dots between papers. Compare and contrast findings.
+                    """
+                    
+                    full_prompt = f"{system_prompt}\n\nCONTEXT LIBRARY:\n{kb_context}\n\nUSER PROMPT: {prompt}"
+                    
+                    response = ai.generate_content(full_prompt).text
+                    st.markdown(response)
+                    st.session_state.messages.append({"role": "assistant", "content": response})
 
 else:
     st.info("Unlock a Workspace via Sidebar to Activate Terminal.")
