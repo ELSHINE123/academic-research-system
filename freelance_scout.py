@@ -450,13 +450,6 @@ if st.session_state.project_id:
             st.markdown('<div class="unified-bar">', unsafe_allow_html=True)
             
             mode = st.radio("Mission Mode", ["Search", "Ingest PDF", "Scrape URL"], horizontal=True)
-            
-import tempfile
-import pathlib
-
-# ... (rest of imports)
-
-# ... inside Main UI ...
 
             if mode == "Ingest PDF":
                 up = st.file_uploader("Source PDF", type="pdf", label_visibility="collapsed")
