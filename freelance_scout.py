@@ -7,6 +7,8 @@ from io import BytesIO
 from pypdf import PdfReader
 from datetime import datetime
 import json
+import tempfile
+import pathlib
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from streamlit_extras.add_vertical_space import add_vertical_space
